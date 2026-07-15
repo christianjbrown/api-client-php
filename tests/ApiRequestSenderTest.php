@@ -126,6 +126,52 @@ final class ApiRequestSenderTest extends TestCase
     }
 
     /**
+     * A failed request must not leak credentials: the request stored on the thrown exception has its
+     * `Authorization` and `Proxy-Authorization` headers redacted, while the in-flight request that was
+     * actually sent (asserted inside the Guzzle send callback) keeps them intact and every
+     * non-sensitive header (e.g. `Accept`) survives on the stored request.
+     *
+     * @throws ConnectException
+     * @throws Exception
+     * @throws ParseJsonException
+     * @throws ParseXmlException
+     * @throws BadResponseException
+     * @throws TooManyRedirectsException
+     */
+    public function testRedactsSensitiveHeadersFromStoredRequest(): void
+    {
+        $requestHeaders = [
+            ApiRequestSenderInterface::HEADER_AUTHORIZATION => 'Bearer secret',
+            ApiRequestSenderInterface::HEADER_PROXY_AUTHORIZATION => 'Basic proxy-secret',
+            'Accept' => 'application/json',
+        ];
+        $sentHeaders = [
+            ApiRequestSenderInterface::HEADER_AUTHORIZATION => ['Bearer secret'],
+            ApiRequestSenderInterface::HEADER_PROXY_AUTHORIZATION => ['Basic proxy-secret'],
+            'Accept' => ['application/json'],
+        ];
+
+        $guzzleConnectException = self::createStub(GuzzleConnectException::class);
+        $requestSender = $this->getRequestSenderForException(ApiRequestSenderInterface::METHOD_GET, $sentHeaders, '', 'test-url', 'test-response', $guzzleConnectException);
+        $connectExceptionThrown = false;
+
+        try {
+            $requestSender->get('test-url', [], $requestHeaders);
+        } catch (ConnectExceptionInterface $e) {
+            $connectExceptionThrown = true;
+
+            $request = $e->getRequest();
+            self::assertFalse($request->hasHeader(ApiRequestSenderInterface::HEADER_AUTHORIZATION));
+            self::assertSame('', $request->getHeaderLine(ApiRequestSenderInterface::HEADER_AUTHORIZATION));
+            self::assertFalse($request->hasHeader(ApiRequestSenderInterface::HEADER_PROXY_AUTHORIZATION));
+            self::assertSame('', $request->getHeaderLine(ApiRequestSenderInterface::HEADER_PROXY_AUTHORIZATION));
+            self::assertSame('application/json', $request->getHeaderLine('Accept'));
+        }
+
+        self::assertTrue($connectExceptionThrown);
+    }
+
+    /**
      * @param string                            $function              The sender method to invoke
      * @param array<int, mixed>                 $functionArgs
      * @param string                            $expectedRequestMethod The expected HTTP request method

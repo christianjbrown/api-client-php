@@ -11,7 +11,9 @@ use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsExceptionInterfa
 interface ApiRequestSenderInterface
 {
     public const string CONTENT_TYPE_FORM_URLENCODED = 'application/x-www-form-urlencoded';
+    public const string HEADER_AUTHORIZATION = 'Authorization';
     public const string HEADER_CONTENT_TYPE = 'Content-Type';
+    public const string HEADER_PROXY_AUTHORIZATION = 'Proxy-Authorization';
     public const string METHOD_GET = 'GET';
     public const string METHOD_POST = 'POST';
 

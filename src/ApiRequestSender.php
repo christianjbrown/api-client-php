@@ -15,6 +15,7 @@ use GuzzleHttp\Exception\BadResponseException as GuzzleBadResponseException;
 use GuzzleHttp\Exception\ConnectException as GuzzleConnectException;
 use GuzzleHttp\Exception\TooManyRedirectsException as GuzzleTooManyRedirectsException;
 use GuzzleHttp\Psr7\Request;
+use Psr\Http\Message\RequestInterface;
 
 use function array_merge;
 use function http_build_query;
@@ -79,6 +80,26 @@ final class ApiRequestSender implements ApiRequestSenderInterface
     }
 
     /**
+     * Strips credential-bearing headers from a clone of the request before it is stored on an
+     * exception, so a consumer that logs or serializes the exception cannot leak them. PSR-7 messages
+     * are immutable, so `withoutHeader()` returns a new instance and the original request — still in
+     * flight elsewhere — is left untouched.
+     *
+     * @param RequestInterface $request The request whose sensitive headers should be redacted
+     */
+    private function redactSensitiveHeaders(RequestInterface $request): RequestInterface
+    {
+        /**
+         * @var RequestInterface $redactedRequest
+         */
+        $redactedRequest = $request
+            ->withoutHeader(self::HEADER_AUTHORIZATION)
+            ->withoutHeader(self::HEADER_PROXY_AUTHORIZATION);
+
+        return $redactedRequest;
+    }
+
+    /**
      * @param string                $method              The HTTP method used for the request
      * @param string                $requestUrl          The request URL
      * @param array<string, string> $requestQueryStrings
@@ -101,11 +122,11 @@ final class ApiRequestSender implements ApiRequestSenderInterface
         try {
             $response = $this->guzzle->send($request);
         } catch (GuzzleConnectException $exception) {
-            throw new ConnectException($request, $exception);
+            throw new ConnectException($this->redactSensitiveHeaders($request), $exception);
         } catch (GuzzleBadResponseException $exception) {
-            throw new BadResponseException($request, $exception);
+            throw new BadResponseException($this->redactSensitiveHeaders($request), $exception);
         } catch (GuzzleTooManyRedirectsException $exception) {
-            throw new TooManyRedirectsException($request, $exception);
+            throw new TooManyRedirectsException($this->redactSensitiveHeaders($request), $exception);
         }
 
         $requestBody = $response->getBody();
