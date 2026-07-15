@@ -4,7 +4,11 @@
     "type": "library",
     "license": "MIT",
     "keywords": ["api", "client", "http", "json", "xml", "guzzle"],
-    "authors": [{ "name": "Christian Brown" }],
+    "authors": [
+        {
+            "name": "Christian Brown"
+        }
+    ],
     "require": {
         "php": "^8.3",
         "guzzlehttp/guzzle": "^7.9",
@@ -18,17 +22,6 @@
         "phpstan/phpstan": "^2.0",
         "christianjbrown/php-code-quality-scripts": "dev-main"
     },
-    "config": {
-        "bin-dir": "bin"
-    },
-    "scripts": {
-        "check-style": ["clear && ./bin/php-cs ./src ./tests"],
-        "check-style-diff": ["clear && ./bin/php-cs-diff"],
-        "fix-style": ["clear && ./bin/php-cs-fix ./src ./tests"],
-        "fix-style-diff": ["clear && ./bin/php-cs-fix-diff"],
-        "stan": ["clear && ./bin/phpstan analyse"],
-        "test": ["clear && XDEBUG_MODE=coverage php -d memory_limit=-1 ./bin/phpunit && open ./.phpunit.cache/code-coverage-html/index.html"]
-    },
     "autoload": {
         "psr-4": {
             "ChristianBrown\\ApiClient\\": "src/"
@@ -38,6 +31,29 @@
         "psr-4": {
             "ChristianBrown\\ApiClient\\Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "test": [
+            "clear && XDEBUG_MODE=coverage php -d memory_limit=-1 ./bin/phpunit && open ./.phpunit.cache/code-coverage-html/index.html"
+        ],
+        "stan": [
+            "clear && ./bin/phpstan analyse"
+        ],
+        "check-style": [
+            "clear && ./bin/php-cs ./src ./tests"
+        ],
+        "check-style-diff": [
+            "clear && ./bin/php-cs-diff"
+        ],
+        "fix-style": [
+            "clear && ./bin/php-cs-fix ./src ./tests"
+        ],
+        "fix-style-diff": [
+            "clear && ./bin/php-cs-fix-diff"
+        ]
+    },
+    "config": {
+        "bin-dir": "bin"
     },
     "repositories": [
         {
