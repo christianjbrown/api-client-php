@@ -16,7 +16,7 @@ This library provides a simple request client for JSON and XML APIs. It is a wra
 
 
 
-# :building_construction: Installation
+## :building_construction: Installation
 
 For your composer-enabled project:
 
@@ -26,11 +26,11 @@ composer require christianjbrown/php-api-client-lib
 
 
 
-# :computer: Usage
+## :computer: Usage
 
 
 
-## Setup
+### Setup
 
 
 
@@ -46,7 +46,7 @@ $jsonApiRequestSender = $apiClient->getJsonApiRequestSender();
 
 
 
-## `POST` examples
+### `POST` examples
 
 
 
@@ -64,7 +64,7 @@ try {
 
 
 
-## `GET` example
+### `GET` example
 
 
 
@@ -82,7 +82,7 @@ try {
 
 
 
-# :rotating_light: Error handling
+## :rotating_light: Error handling
 
 The main value-add of this library is that it catches Guzzle's transport-specific exceptions and
 re-throws framework-agnostic ones. Every exception this library throws implements
@@ -112,6 +112,12 @@ To handle specific failure modes, catch the narrower interfaces (all extend `Exc
 
 Request/response exceptions expose the PSR-7 `getRequest()` (and `getResponse()` for response
 errors); parse exceptions expose the failing `getMethod()`, `getUrl()`, and `getQueryStrings()`.
+
+
+
+## :page_facing_up: License
+
+Released under the [MIT License](LICENSE).
 
 
 
