@@ -1,5 +1,7 @@
 # API Client
 
+[![CI](https://github.com/christianjbrown/php-api-client-lib/actions/workflows/ci.yml/badge.svg)](https://github.com/christianjbrown/php-api-client-lib/actions/workflows/ci.yml)
+
 This library provides a simple request client for JSON and XML APIs. It is a wrapper around GuzzleHttp's `Client` class that decodes responses — JSON to an `array`, XML to a `DOMDocument` — and provides common non-Guzzle specific exception classes to make it easier to catch and handle.
 
 
