@@ -1,6 +1,6 @@
 {
     "name": "christianjbrown/php-api-client-lib",
-    "description": "A thin, strongly-typed PHP 8.3+ client for JSON and XML APIs that wraps GuzzleHttp and normalizes its exceptions into a single, framework-agnostic hierarchy.",
+    "description": "A thin, strongly-typed PHP 8.5+ client for JSON and XML APIs that wraps GuzzleHttp and normalizes its exceptions into a single, framework-agnostic hierarchy.",
     "type": "library",
     "license": "MIT",
     "keywords": ["api", "client", "http", "json", "xml", "guzzle"],
@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "php": "^8.3",
+        "php": "^8.5",
         "guzzlehttp/guzzle": "^7.9",
         "ext-dom": "*",
         "ext-simplexml": "*",

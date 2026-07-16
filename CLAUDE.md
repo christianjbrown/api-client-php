@@ -5,7 +5,7 @@ small, uniform, and highly opinionated, so new code should be indistinguishable 
 
 ## What this is
 
-A thin, strongly-typed PHP 8.3+ client for JSON and XML APIs. It wraps GuzzleHttp's `Client`,
+A thin, strongly-typed PHP 8.5+ client for JSON and XML APIs. It wraps GuzzleHttp's `Client`,
 (de)serializes request/response bodies, and — its main value-add — normalizes Guzzle's
 transport-specific exceptions into a single, framework-agnostic hierarchy so callers can
 `catch (ExceptionInterface)` and stay decoupled from Guzzle. It is a generic base library, not tied
