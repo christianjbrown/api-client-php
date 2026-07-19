@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\Exception\AbstractException;
 use ChristianBrown\ApiClient\Exception\Parse\AbstractParseException;
 use ChristianBrown\ApiClient\Exception\Parse\ParseXmlException;
 use ChristianBrown\ApiClient\Exception\Parse\ParseXmlExceptionInterface;
+use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\Transformer\StringToXmlDocTransformer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -18,13 +19,14 @@ use function libxml_use_internal_errors;
 #[CoversClass(AbstractException::class)]
 #[CoversClass(AbstractParseException::class)]
 #[CoversClass(ParseXmlException::class)]
+#[CoversClass(RequestContext::class)]
 #[CoversClass(StringToXmlDocTransformer::class)]
 final class StringToXmlDocTransformerTest extends TestCase
 {
     public function test(): void
     {
         $transformer = new StringToXmlDocTransformer();
-        $actual = $transformer->transform('<xml><test-key-1>test-value-1</test-key-1></xml>', 'test-method', 'test-url', ['test-query-string' => 'test-value']);
+        $actual = $transformer->transform('<xml><test-key-1>test-value-1</test-key-1></xml>', new RequestContext('test-method', 'test-url', ['test-query-string' => 'test-value']));
 
         $expected = <<<'XML'
             <?xml version="1.0"?>
@@ -41,7 +43,7 @@ final class StringToXmlDocTransformerTest extends TestCase
         $parseXmlExceptionThrown = false;
 
         try {
-            $transformer->transform('<xml><test-invalid-xml', 'test-method', 'test-url', ['test-query-string' => 'test-value']);
+            $transformer->transform('<xml><test-invalid-xml', new RequestContext('test-method', 'test-url', ['test-query-string' => 'test-value']));
         } catch (ParseXmlExceptionInterface $e) {
             $parseXmlExceptionThrown = true;
             self::assertCount(2, $e->getErrors());
@@ -64,7 +66,7 @@ final class StringToXmlDocTransformerTest extends TestCase
             $transformer = new StringToXmlDocTransformer();
 
             try {
-                $transformer->transform($xml, 'test-method', 'test-url');
+                $transformer->transform($xml, new RequestContext('test-method', 'test-url'));
             } catch (ParseXmlExceptionInterface) {
                 // The failure path must restore state just like the success path.
             }

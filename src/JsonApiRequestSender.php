@@ -39,9 +39,8 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
     public function get(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = []): array
     {
         $contents = $this->apiRequestSender->get($requestUrl, $requestQueryStrings, $requestHeaders);
-        $doc = $this->responseTransformer->transform($contents, ApiRequestSenderInterface::METHOD_GET, $requestUrl, $requestQueryStrings);
 
-        return $doc;
+        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_GET, $requestUrl, $requestQueryStrings));
     }
 
     /**
@@ -59,14 +58,14 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function post(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], ?array $requestBodyArray = null): array
     {
+        $context = new RequestContext(ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings);
         $requestBodyString = null;
         if (null !== $requestBodyArray) {
-            $requestBodyString = $this->requestTransformer->transform($requestBodyArray, ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings);
+            $requestBodyString = $this->requestTransformer->transform($requestBodyArray, $context);
         }
         $contents = $this->apiRequestSender->post($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyString);
-        $doc = $this->responseTransformer->transform($contents, ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings);
 
-        return $doc;
+        return $this->responseTransformer->transform($contents, $context);
     }
 
     /**
@@ -85,8 +84,7 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
     public function postForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): array
     {
         $contents = $this->apiRequestSender->postForm($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData);
-        $doc = $this->responseTransformer->transform($contents, ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings);
 
-        return $doc;
+        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings));
     }
 }

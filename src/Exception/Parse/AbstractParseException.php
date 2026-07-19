@@ -4,50 +4,36 @@ declare(strict_types=1);
 
 namespace ChristianBrown\ApiClient\Exception\Parse;
 
+use ChristianBrown\ApiClient\RequestContextInterface;
 use RuntimeException;
 use Throwable;
 
 abstract class AbstractParseException extends RuntimeException implements ParseExceptionInterface
 {
-    protected string $method;
+    private RequestContextInterface $context;
 
-    /**
-     * @var null|array<string, string>
-     */
-    protected ?array $queryStrings = null;
-    protected string $url;
-
-    /**
-     * @param string                     $message             The exception message
-     * @param string                     $method              The HTTP method used for the request
-     * @param string                     $requestUrl          The request URL
-     * @param null|array<string, string> $requestQueryStrings
-     * @param null|Throwable             $previous            The previous throwable
-     */
-    public function __construct(string $message, string $method, string $requestUrl, ?array $requestQueryStrings = [], ?Throwable $previous = null)
+    public function __construct(string $message, RequestContextInterface $context, ?Throwable $previous = null)
     {
-        $this->method = $method;
-        $this->url = $requestUrl;
-        $this->queryStrings = $requestQueryStrings;
+        $this->context = $context;
 
         parent::__construct($message, 0, $previous);
     }
 
     final public function getMethod(): string
     {
-        return $this->method;
+        return $this->context->getMethod();
     }
 
     /**
-     * @return null|array<string, string>
+     * @return array<string, string>
      */
-    final public function getQueryStrings(): ?array
+    final public function getQueryStrings(): array
     {
-        return $this->queryStrings;
+        return $this->context->getQueryStrings();
     }
 
     final public function getUrl(): string
     {
-        return $this->url;
+        return $this->context->getUrl();
     }
 }

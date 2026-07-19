@@ -6,6 +6,7 @@ namespace ChristianBrown\ApiClient\Transformer;
 
 use ChristianBrown\ApiClient\Exception\Parse\ParseXmlException;
 use ChristianBrown\ApiClient\Exception\Parse\ParseXmlExceptionInterface;
+use ChristianBrown\ApiClient\RequestContextInterface;
 use DOMDocument;
 
 use function libxml_clear_errors;
@@ -15,14 +16,12 @@ use function libxml_use_internal_errors;
 final class StringToXmlDocTransformer implements StringToXmlDocTransformerInterface
 {
     /**
-     * @param string                $string              The XML string to parse
-     * @param string                $method              The HTTP method used for the request
-     * @param string                $requestUrl          The request URL
-     * @param array<string, string> $requestQueryStrings
+     * @param string                  $string
+     * @param RequestContextInterface $context
      *
      * @throws ParseXmlExceptionInterface
      */
-    public function transform(string $string, string $method, string $requestUrl, array $requestQueryStrings = []): DOMDocument
+    public function transform(string $string, RequestContextInterface $context): DOMDocument
     {
         // libxml_use_internal_errors() mutates process-global state and returns its prior value;
         // capture it and restore it unconditionally so parsing here can't leak error handling into
@@ -35,7 +34,7 @@ final class StringToXmlDocTransformer implements StringToXmlDocTransformerInterf
         libxml_use_internal_errors($previousUseInternalErrors);
 
         if (!$success) {
-            throw new ParseXmlException($errors, $method, $requestUrl, $requestQueryStrings);
+            throw new ParseXmlException($errors, $context);
         }
 
         return $doc;

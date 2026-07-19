@@ -7,12 +7,14 @@ namespace ChristianBrown\ApiClient\Tests;
 use ChristianBrown\ApiClient\ApiRequestSenderInterface;
 use ChristianBrown\ApiClient\Transformer\StringToXmlDocTransformerInterface;
 use ChristianBrown\ApiClient\Transformer\XmlDocToStringTransformerInterface;
+use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\XmlApiRequestSender;
 use DOMDocument;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 
+#[CoversClass(RequestContext::class)]
 #[CoversClass(XmlApiRequestSender::class)]
 final class XmlApiRequestSenderTest extends TestCase
 {
@@ -38,9 +40,7 @@ final class XmlApiRequestSenderTest extends TestCase
             ->method('transform')
             ->with(
                 'test-response',
-                ApiRequestSenderInterface::METHOD_GET,
-                'test-url',
-                ['test-query-string' => 'test-value'],
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_GET, 'test-url', ['test-query-string' => 'test-value'])),
             )
             ->willReturn($responseDoc);
 
@@ -75,21 +75,14 @@ final class XmlApiRequestSenderTest extends TestCase
             ->method('transform')
             ->with(
                 'test-response',
-                ApiRequestSenderInterface::METHOD_POST,
-                'test-url',
-                ['test-query-string' => 'test-value'],
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_POST, 'test-url', ['test-query-string' => 'test-value'])),
             )
             ->willReturn($responseDoc);
 
         $requestTransformer = self::createMock(XmlDocToStringTransformerInterface::class);
         $requestTransformer->expects(self::once())
             ->method('transform')
-            ->with(
-                $requestDoc,
-                ApiRequestSenderInterface::METHOD_POST,
-                'test-url',
-                ['test-query-string' => 'test-value'],
-            )
+            ->with($requestDoc)
             ->willReturn('test-request-body');
 
         $xmlApiRequestSender = new XmlApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
@@ -121,9 +114,7 @@ final class XmlApiRequestSenderTest extends TestCase
             ->method('transform')
             ->with(
                 'test-response',
-                ApiRequestSenderInterface::METHOD_POST,
-                'test-url',
-                ['test-query-string' => 'test-value'],
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_POST, 'test-url', ['test-query-string' => 'test-value'])),
             )
             ->willReturn($responseDoc);
 

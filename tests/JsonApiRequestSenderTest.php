@@ -10,6 +10,7 @@ use ChristianBrown\ApiClient\Exception\Request\ConnectExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSender;
+use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\Transformer\ArrayToJsonTransformerInterface;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -17,6 +18,7 @@ use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(JsonApiRequestSender::class)]
+#[CoversClass(RequestContext::class)]
 final class JsonApiRequestSenderTest extends TestCase
 {
     /**
@@ -43,9 +45,7 @@ final class JsonApiRequestSenderTest extends TestCase
             ->method('transform')
             ->with(
                 'test-response',
-                ApiRequestSenderInterface::METHOD_GET,
-                'test-url',
-                ['test-query-string' => 'test-value'],
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_GET, 'test-url', ['test-query-string' => 'test-value'])),
             )
             ->willReturn(['test-response-array']);
 
@@ -81,9 +81,7 @@ final class JsonApiRequestSenderTest extends TestCase
             ->method('transform')
             ->with(
                 'test-response',
-                ApiRequestSenderInterface::METHOD_POST,
-                'test-url',
-                ['test-query-string' => 'test-value'],
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_POST, 'test-url', ['test-query-string' => 'test-value'])),
             )
             ->willReturn(['test-response-array']);
 
@@ -92,9 +90,7 @@ final class JsonApiRequestSenderTest extends TestCase
             ->method('transform')
             ->with(
                 ['test-request-array'],
-                ApiRequestSenderInterface::METHOD_POST,
-                'test-url',
-                ['test-query-string' => 'test-value'],
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_POST, 'test-url', ['test-query-string' => 'test-value'])),
             )
             ->willReturn('test-request-body');
 
@@ -129,9 +125,7 @@ final class JsonApiRequestSenderTest extends TestCase
             ->method('transform')
             ->with(
                 'test-response',
-                ApiRequestSenderInterface::METHOD_POST,
-                'test-url',
-                ['test-query-string' => 'test-value'],
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_POST, 'test-url', ['test-query-string' => 'test-value'])),
             )
             ->willReturn(['test-response-array']);
 
@@ -168,9 +162,7 @@ final class JsonApiRequestSenderTest extends TestCase
             ->method('transform')
             ->with(
                 'test-response',
-                ApiRequestSenderInterface::METHOD_POST,
-                'test-url',
-                ['test-query-string' => 'test-value'],
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_POST, 'test-url', ['test-query-string' => 'test-value'])),
             )
             ->willReturn(['test-response-array']);
 

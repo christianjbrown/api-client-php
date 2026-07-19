@@ -22,7 +22,7 @@ final class XmlDocToStringTransformerTest extends TestCase
         $testElement = $doc->createElement('test-key-1', 'test-value-1');
         $doc->append($testElement);
         $transformer = new XmlDocToStringTransformer();
-        $actual = $transformer->transform($doc, 'test-method', 'test-url', ['test-query-string' => 'test-value']);
+        $actual = $transformer->transform($doc);
 
         $expected = <<<'XML'
             <?xml version="1.0"?>

@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-namespace ChristianBrown\ApiClient\Exception\Parse;
+namespace ChristianBrown\ApiClient;
 
-use ChristianBrown\ApiClient\Exception\ExceptionInterface;
-
-interface ParseExceptionInterface extends ExceptionInterface
+interface RequestContextInterface
 {
     public function getMethod(): string;
 

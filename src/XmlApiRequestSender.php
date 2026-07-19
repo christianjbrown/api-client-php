@@ -38,9 +38,8 @@ final class XmlApiRequestSender implements XmlApiRequestSenderInterface
     public function get(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = []): DOMDocument
     {
         $contents = $this->apiRequestSender->get($requestUrl, $requestQueryStrings, $requestHeaders);
-        $doc = $this->responseTransformer->transform($contents, ApiRequestSenderInterface::METHOD_GET, $requestUrl, $requestQueryStrings);
 
-        return $doc;
+        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_GET, $requestUrl, $requestQueryStrings));
     }
 
     /**
@@ -58,11 +57,10 @@ final class XmlApiRequestSender implements XmlApiRequestSenderInterface
     {
         $requestBodyString = null;
         if ($requestDomDocument instanceof DOMDocument) {
-            $requestBodyString = $this->requestTransformer->transform($requestDomDocument, ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings);
+            $requestBodyString = $this->requestTransformer->transform($requestDomDocument);
         }
         $contents = $this->apiRequestSender->post($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyString);
-        $doc = $this->responseTransformer->transform($contents, ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings);
 
-        return $doc;
+        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings));
     }
 }

@@ -6,6 +6,7 @@ namespace ChristianBrown\ApiClient\Tests\Exception\Parse;
 
 use ChristianBrown\ApiClient\Exception\Parse\ParseXmlException;
 use ChristianBrown\ApiClient\Exception\Parse\ParseXmlExceptionInterface;
+use ChristianBrown\ApiClient\RequestContext;
 use LibXMLError;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\Exception;
@@ -15,13 +16,14 @@ use function implode;
 use function sprintf;
 
 #[CoversClass(ParseXmlException::class)]
+#[CoversClass(RequestContext::class)]
 final class ParseXmlExceptionTest extends TestCase
 {
     public function testEmptyErrors(): void
     {
         $errors = [];
 
-        $exception = new ParseXmlException($errors, 'test-method', 'test-url', ['test-query-string' => 'test-value']);
+        $exception = new ParseXmlException($errors, new RequestContext('test-method', 'test-url', ['test-query-string' => 'test-value']));
         self::assertSame($errors, $exception->getErrors());
         self::assertSame('test-method', $exception->getMethod());
         self::assertSame('test-url', $exception->getUrl());
@@ -45,7 +47,7 @@ final class ParseXmlExceptionTest extends TestCase
         $error1->message = 'test-error-1';
         $errors = ['test-not-a-libxml-error', $error1];
 
-        $exception = new ParseXmlException($errors, 'test-method', 'test-url', ['test-query-string' => 'test-value']);
+        $exception = new ParseXmlException($errors, new RequestContext('test-method', 'test-url', ['test-query-string' => 'test-value']));
         self::assertSame([$error1], $exception->getErrors());
         self::assertSame('test-method', $exception->getMethod());
         self::assertSame('test-url', $exception->getUrl());
@@ -81,7 +83,7 @@ final class ParseXmlExceptionTest extends TestCase
         $error2->message = 'test-error-2';
         $errors = [$error1, $error2];
 
-        $exception = new ParseXmlException($errors, 'test-method', 'test-url', ['test-query-string' => 'test-value']);
+        $exception = new ParseXmlException($errors, new RequestContext('test-method', 'test-url', ['test-query-string' => 'test-value']));
         self::assertSame($errors, $exception->getErrors());
         self::assertSame('test-method', $exception->getMethod());
         self::assertSame('test-url', $exception->getUrl());
@@ -108,7 +110,7 @@ final class ParseXmlExceptionTest extends TestCase
     {
         $errors = ['test-not-a-libxml-error'];
 
-        $exception = new ParseXmlException($errors, 'test-method', 'test-url', ['test-query-string' => 'test-value']);
+        $exception = new ParseXmlException($errors, new RequestContext('test-method', 'test-url', ['test-query-string' => 'test-value']));
         self::assertSame([], $exception->getErrors());
         self::assertSame('test-method', $exception->getMethod());
         self::assertSame('test-url', $exception->getUrl());
@@ -133,7 +135,7 @@ final class ParseXmlExceptionTest extends TestCase
         $error1->message = 'test-error-1';
         $errors = [$error1];
 
-        $exception = new ParseXmlException($errors, 'test-method', 'test-url', ['test-query-string' => 'test-value']);
+        $exception = new ParseXmlException($errors, new RequestContext('test-method', 'test-url', ['test-query-string' => 'test-value']));
         self::assertSame($errors, $exception->getErrors());
         self::assertSame('test-method', $exception->getMethod());
         self::assertSame('test-url', $exception->getUrl());

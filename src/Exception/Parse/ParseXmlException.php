@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\ApiClient\Exception\Parse;
 
+use ChristianBrown\ApiClient\RequestContextInterface;
 use LibXMLError;
 
 use function array_filter;
@@ -20,16 +21,13 @@ final class ParseXmlException extends AbstractParseException implements ParseXml
     private array $errors = [];
 
     /**
-     * @param array<int, mixed>          $errors
-     * @param string                     $method              The HTTP method used for the request
-     * @param string                     $requestUrl          The request URL
-     * @param null|array<string, string> $requestQueryStrings
+     * @param array<int, mixed> $errors
      */
-    public function __construct(array $errors, string $method, string $requestUrl, ?array $requestQueryStrings = [])
+    public function __construct(array $errors, RequestContextInterface $context)
     {
         $this->errors = array_values(array_filter($errors, static fn (mixed $error): bool => $error instanceof LibXMLError));
-        $message = self::generateMessage($this->errors, $method, $requestUrl);
-        parent::__construct($message, $method, $requestUrl, $requestQueryStrings);
+        $message = self::generateMessage($this->errors, $context->getMethod(), $context->getUrl());
+        parent::__construct($message, $context);
     }
 
     /**
