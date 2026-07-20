@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace ChristianBrown\ApiClient\Tests;
 
 use ChristianBrown\ApiClient\ApiRequestSenderInterface;
+use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\Transformer\StringToXmlDocTransformerInterface;
 use ChristianBrown\ApiClient\Transformer\XmlDocToStringTransformerInterface;
-use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\XmlApiRequestSender;
 use DOMDocument;
 use PHPUnit\Framework\Attributes\CoversClass;

@@ -15,9 +15,7 @@ final class RequestContext implements RequestContextInterface
     private string $url;
 
     /**
-     * @param string                $method
-     * @param string                $url
-     * @param array<string, string> $queryStrings
+     * @phpstan-param array<string, string> $queryStrings
      */
     public function __construct(string $method, string $url, array $queryStrings = [])
     {

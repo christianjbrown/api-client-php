@@ -47,21 +47,21 @@ final class BadResponseExceptionTest extends TestCase
     /**
      * @throws Exception
      */
-    public function testGetDecodedBodyReturnsTheDecodedArray(): void
-    {
-        $exception = new BadResponseException($this->createStubRequest(), $this->createStubGuzzleException('{"error":"invalid_grant"}'));
-
-        self::assertSame(['error' => 'invalid_grant'], $exception->getDecodedBody());
-    }
-
-    /**
-     * @throws Exception
-     */
     public function testGetDecodedBodyReturnsNullWhenTheBodyIsNotAJsonArray(): void
     {
         $exception = new BadResponseException($this->createStubRequest(), $this->createStubGuzzleException('not-json'));
 
         self::assertNull($exception->getDecodedBody());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testGetDecodedBodyReturnsTheDecodedArray(): void
+    {
+        $exception = new BadResponseException($this->createStubRequest(), $this->createStubGuzzleException('{"error":"invalid_grant"}'));
+
+        self::assertSame(['error' => 'invalid_grant'], $exception->getDecodedBody());
     }
 
     /**

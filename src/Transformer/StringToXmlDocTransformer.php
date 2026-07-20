@@ -16,9 +16,6 @@ use function libxml_use_internal_errors;
 final class StringToXmlDocTransformer implements StringToXmlDocTransformerInterface
 {
     /**
-     * @param string                  $string
-     * @param RequestContextInterface $context
-     *
      * @throws ParseXmlExceptionInterface
      */
     public function transform(string $string, RequestContextInterface $context): DOMDocument

@@ -12,9 +12,6 @@ interface JsonToArrayTransformerInterface
     public const string MESSAGE_NON_ARRAY_SPRINTF = 'Decoded JSON is not an array whilst %sing to %s';
 
     /**
-     * @param string                  $data
-     * @param RequestContextInterface $context
-     *
      * @throws ParseJsonExceptionInterface
      *
      * @return array<array-key, mixed>

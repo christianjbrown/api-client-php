@@ -18,9 +18,6 @@ use const JSON_THROW_ON_ERROR;
 final class JsonToArrayTransformer implements JsonToArrayTransformerInterface
 {
     /**
-     * @param string                  $data
-     * @param RequestContextInterface $context
-     *
      * @throws ParseJsonExceptionInterface
      *
      * @return array<array-key, mixed>

@@ -11,9 +11,6 @@ use DOMDocument;
 interface StringToXmlDocTransformerInterface
 {
     /**
-     * @param string                  $string
-     * @param RequestContextInterface $context
-     *
      * @throws ParseXmlExceptionInterface
      */
     public function transform(string $string, RequestContextInterface $context): DOMDocument;

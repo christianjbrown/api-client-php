@@ -11,7 +11,6 @@ interface ArrayToJsonTransformerInterface
 {
     /**
      * @param array<array-key, mixed> $data
-     * @param RequestContextInterface $context
      *
      * @throws ParseJsonExceptionInterface
      */

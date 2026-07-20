@@ -17,7 +17,6 @@ final class ArrayToJsonTransformer implements ArrayToJsonTransformerInterface
 {
     /**
      * @param array<array-key, mixed> $data
-     * @param RequestContextInterface $context
      *
      * @throws ParseJsonExceptionInterface
      */
