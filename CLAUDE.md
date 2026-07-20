@@ -55,7 +55,9 @@ Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirro
   failure can report where it happened.
 - **`Exception/`** — the normalized hierarchy, rooted at `ExceptionInterface extends Throwable`.
   Request branch: `ConnectException`. Response branch: `BadResponseException`,
-  `TooManyRedirectsException` (carry the PSR-7 request + response, code = HTTP status). Parse branch:
+  `TooManyRedirectsException` (carry the PSR-7 request + response, code = HTTP status; expose
+  `getDecodedBody(): ?array` so callers can inspect a JSON error payload without touching the raw PSR-7
+  body — null when the body is not a JSON array/object). Parse branch:
   `ParseJsonException`, `ParseXmlException` (carry method/url/query context). A single
   `catch (ExceptionInterface)` covers everything this library throws.
 
