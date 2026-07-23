@@ -43,7 +43,7 @@ final class ParseXmlException extends AbstractParseException implements ParseXml
      * @param string                  $method     The HTTP method used for the request
      * @param string                  $requestUrl The request URL
      */
-    private function generateMessage(array $errors, string $method, string $requestUrl): string
+    private static function generateMessage(array $errors, string $method, string $requestUrl): string
     {
         $errorMessages = array_map(
             static fn (LibXMLError $error): string => sprintf(

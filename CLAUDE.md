@@ -84,6 +84,9 @@ Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirro
 - **`ApiClient` getters must stay PHPStan-safe**: `$this->container->get()` returns `mixed`, so assign
   it to a local `$service` annotated with a `/** @var XInterface $service */` docblock and return that
   — never `return $this->container->get(...)` directly.
+- **A method that does not use `$this` must be `static`** (called via `self::`) — a stateless helper is
+  static. Enforced for private methods by the shared `RequireStaticPrivateMethodRule` PHPStan rule (via
+  `php-code-quality-scripts`' `config/phpstan.neon`); interface/override methods stay instance.
 
 ### Deliberate deviation: abstract exception base classes
 

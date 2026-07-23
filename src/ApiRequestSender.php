@@ -87,7 +87,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      *
      * @param RequestInterface $request The request whose sensitive headers should be redacted
      */
-    private function redactSensitiveHeaders(RequestInterface $request): RequestInterface
+    private static function redactSensitiveHeaders(RequestInterface $request): RequestInterface
     {
         /**
          * @var RequestInterface $redactedRequest
@@ -122,11 +122,11 @@ final class ApiRequestSender implements ApiRequestSenderInterface
         try {
             $response = $this->guzzle->send($request);
         } catch (GuzzleConnectException $exception) {
-            throw new ConnectException($this->redactSensitiveHeaders($request), $exception);
+            throw new ConnectException(self::redactSensitiveHeaders($request), $exception);
         } catch (GuzzleBadResponseException $exception) {
-            throw new BadResponseException($this->redactSensitiveHeaders($request), $exception);
+            throw new BadResponseException(self::redactSensitiveHeaders($request), $exception);
         } catch (GuzzleTooManyRedirectsException $exception) {
-            throw new TooManyRedirectsException($this->redactSensitiveHeaders($request), $exception);
+            throw new TooManyRedirectsException(self::redactSensitiveHeaders($request), $exception);
         }
 
         $requestBody = $response->getBody();
