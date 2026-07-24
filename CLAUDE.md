@@ -9,7 +9,7 @@ A thin, strongly-typed PHP 8.5+ client for JSON and XML APIs. It wraps GuzzleHtt
 (de)serializes request/response bodies, and — its main value-add — normalizes Guzzle's
 transport-specific exceptions into a single, framework-agnostic hierarchy so callers can
 `catch (ExceptionInterface)` and stay decoupled from Guzzle. It is a generic base library, not tied
-to any specific API; other libraries (e.g. `php-smartthings-api-lib`) build on top of it. The entry
+to any specific API; other libraries (e.g. `smartthings-api-sdk`) build on top of it. The entry
 point is the `ApiClient` facade (`src/ApiClient.php`), which wires the senders and transformers
 through a Symfony `ContainerBuilder` DI container.
 
@@ -17,7 +17,7 @@ through a Symfony `ContainerBuilder` DI container.
 
 Binaries install into `bin/` (Composer `bin-dir`), not `vendor/bin/`. Both `bin/` and `vendor/` are
 gitignored and Composer-installed, so run `composer install` first. The style tooling comes from the
-private `christianjbrown/php-code-quality-scripts` dev dependency: `check-style` runs **PHP_CodeSniffer 4**
+private `christianjbrown/code-quality-scripts` dev dependency: `check-style` runs **PHP_CodeSniffer 4**
 with the `ChristianBrown` standard (slevomat sniffs plus PSR/PEAR/Squiz/Generic), while **php-cs-fixer**
 handles formatting via the `@PhpCsFixer`/`@Symfony` rule sets; installing it needs SSH/`COMPOSER_AUTH`
 access to the private repo.
@@ -86,11 +86,11 @@ Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirro
   — never `return $this->container->get(...)` directly.
 - **A method that does not use `$this` must be `static`** (called via `self::`) — a stateless helper is
   static. Enforced for private methods by the shared `RequireStaticPrivateMethodRule` PHPStan rule (via
-  `php-code-quality-scripts`' `config/phpstan.neon`); interface/override methods stay instance.
+  `code-quality-scripts`' `config/phpstan.neon`); interface/override methods stay instance.
 
 ### Deliberate deviation: abstract exception base classes
 
-Unlike `php-smartthings-api-lib` (whose flat two-exception model has **no abstract base classes**),
+Unlike `smartthings-api-sdk` (whose flat two-exception model has **no abstract base classes**),
 this library **does** use abstract exception bases — `AbstractException`, `AbstractParseException`,
 `AbstractResponseException`. They carry genuinely shared state and behavior (`getRequest()`,
 `getResponse()`, setting the exception code to the HTTP status) across several concrete exceptions,
