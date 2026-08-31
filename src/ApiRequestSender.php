@@ -39,9 +39,53 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
+    public function delete(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = []): string
+    {
+        return $this->sendRequest(self::METHOD_DELETE, $requestUrl, $requestQueryStrings, $requestHeaders);
+    }
+
+    /**
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
     public function get(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = []): string
     {
         return $this->sendRequest(self::METHOD_GET, $requestUrl, $requestQueryStrings, $requestHeaders);
+    }
+
+    /**
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     * @param null|string           $requestBody         The raw request body
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function patch(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], ?string $requestBody = null): string
+    {
+        return $this->sendRequest(self::METHOD_PATCH, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBody);
+    }
+
+    /**
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     * @param array<string, string> $requestBodyFormData
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function patchForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string
+    {
+        return $this->sendFormRequest(self::METHOD_PATCH, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData);
     }
 
     /**
@@ -71,12 +115,37 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      */
     public function postForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string
     {
-        $requestBody = http_build_query($requestBodyFormData, '', '&');
-        // Default the form content type, but let a caller-supplied header win.
-        $requestHeaders = array_merge([self::HEADER_CONTENT_TYPE => self::CONTENT_TYPE_FORM_URLENCODED], $requestHeaders);
-        $data = $this->post($requestUrl, $requestQueryStrings, $requestHeaders, $requestBody);
+        return $this->sendFormRequest(self::METHOD_POST, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData);
+    }
 
-        return $data;
+    /**
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     * @param null|string           $requestBody         The raw request body
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function put(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], ?string $requestBody = null): string
+    {
+        return $this->sendRequest(self::METHOD_PUT, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBody);
+    }
+
+    /**
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     * @param array<string, string> $requestBodyFormData
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function putForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string
+    {
+        return $this->sendFormRequest(self::METHOD_PUT, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData);
     }
 
     /**
@@ -97,6 +166,28 @@ final class ApiRequestSender implements ApiRequestSenderInterface
             ->withoutHeader(self::HEADER_PROXY_AUTHORIZATION);
 
         return $redactedRequest;
+    }
+
+    /**
+     * Renders `$requestBodyFormData` as an `application/x-www-form-urlencoded` body and sends it with
+     * `$method`, defaulting the content type header while letting a caller-supplied one win.
+     *
+     * @param string                $method              The HTTP method used for the request
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     * @param array<string, string> $requestBodyFormData
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    private function sendFormRequest(string $method, string $requestUrl, array $requestQueryStrings, array $requestHeaders, array $requestBodyFormData): string
+    {
+        $requestBody = http_build_query($requestBodyFormData, '', '&');
+        $requestHeaders = array_merge([self::HEADER_CONTENT_TYPE => self::CONTENT_TYPE_FORM_URLENCODED], $requestHeaders);
+
+        return $this->sendRequest($method, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBody);
     }
 
     /**

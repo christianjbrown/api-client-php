@@ -46,9 +46,12 @@ Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirro
   builds a Symfony `ContainerBuilder` and registers Guzzle, the four transformers, and the three
   senders as services (ids are `SERVICE_*` constants on `ApiClientInterface`). Exposes
   `getApiRequestSender()`, `getJsonApiRequestSender()`, `getXmlApiRequestSender()`.
-- **`ApiRequestSender`** — the raw HTTP layer over Guzzle's `ClientInterface`. `get`/`post`/`postForm`
+- **`ApiRequestSender`** — the raw HTTP layer over Guzzle's `ClientInterface`. `get`/`delete` (no
+  body), `post`/`put`/`patch` (raw body) and `postForm`/`putForm`/`patchForm` (form-encoded body)
   build a PSR-7 `Request`, send it, translate Guzzle exceptions into this library's own types, and
-  return the raw response body as a `string`.
+  return the raw response body as a `string`. All of them funnel through the private `sendRequest()`;
+  the form variants go via `sendFormRequest()`, which renders the body and defaults the
+  `Content-Type` header while letting a caller-supplied one win.
 - **`JsonApiRequestSender` / `XmlApiRequestSender`** — decorate the raw sender, injecting transformers
   to (de)serialize. JSON senders return `array`; XML senders return `DOMDocument`.
 - **`Transformer/`** — four single-responsibility (de)serializers, each behind an interface:
