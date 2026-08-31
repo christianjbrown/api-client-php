@@ -15,8 +15,22 @@ interface ApiRequestSenderInterface
     public const string HEADER_AUTHORIZATION = 'Authorization';
     public const string HEADER_CONTENT_TYPE = 'Content-Type';
     public const string HEADER_PROXY_AUTHORIZATION = 'Proxy-Authorization';
+    public const string METHOD_DELETE = 'DELETE';
     public const string METHOD_GET = 'GET';
+    public const string METHOD_PATCH = 'PATCH';
     public const string METHOD_POST = 'POST';
+    public const string METHOD_PUT = 'PUT';
+
+    /**
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function delete(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = []): string;
 
     /**
      * @param string                $requestUrl          The request URL
@@ -28,6 +42,30 @@ interface ApiRequestSenderInterface
      * @throws TooManyRedirectsExceptionInterface
      */
     public function get(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = []): string;
+
+    /**
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     * @param null|string           $requestBody         The raw request body
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function patch(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], ?string $requestBody = null): string;
+
+    /**
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     * @param array<string, string> $requestBodyFormData
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function patchForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string;
 
     /**
      * @param string                $requestUrl          The request URL
@@ -52,4 +90,28 @@ interface ApiRequestSenderInterface
      * @throws TooManyRedirectsExceptionInterface
      */
     public function postForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string;
+
+    /**
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     * @param null|string           $requestBody         The raw request body
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function put(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], ?string $requestBody = null): string;
+
+    /**
+     * @param string                $requestUrl          The request URL
+     * @param array<string, string> $requestQueryStrings
+     * @param array<string, string> $requestHeaders
+     * @param array<string, string> $requestBodyFormData
+     *
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function putForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string;
 }

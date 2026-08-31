@@ -22,6 +22,41 @@ use PHPUnit\Framework\TestCase;
 final class JsonApiRequestSenderTest extends TestCase
 {
     /**
+     * @throws Exception
+     * @throws ParseJsonExceptionInterface
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function testDelete(): void
+    {
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())
+            ->method('delete')
+            ->with(
+                'test-url',
+                ['test-query-string' => 'test-value'],
+                ['test-header' => 'test-value']
+            )
+            ->willReturn('test-response');
+
+        $responseTransformer = self::createMock(JsonToArrayTransformerInterface::class);
+        $responseTransformer->expects(self::once())
+            ->method('transform')
+            ->with(
+                'test-response',
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_DELETE, 'test-url', ['test-query-string' => 'test-value'])),
+            )
+            ->willReturn(['test-response-array']);
+
+        $requestTransformer = self::createStub(ArrayToJsonTransformerInterface::class);
+        $jsonApiRequestSender = new JsonApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
+        $actual = $jsonApiRequestSender->delete('test-url', ['test-query-string' => 'test-value'], ['test-header' => 'test-value']);
+
+        self::assertSame(['test-response-array'], $actual);
+    }
+
+    /**
      * @throws BadResponseExceptionInterface
      * @throws ConnectExceptionInterface
      * @throws Exception
@@ -52,6 +87,87 @@ final class JsonApiRequestSenderTest extends TestCase
         $requestTransformer = self::createStub(ArrayToJsonTransformerInterface::class);
         $jsonApiRequestSender = new JsonApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
         $actual = $jsonApiRequestSender->get('test-url', ['test-query-string' => 'test-value'], ['test-header' => 'test-value']);
+
+        self::assertSame(['test-response-array'], $actual);
+    }
+
+    /**
+     * @throws Exception
+     * @throws ParseJsonExceptionInterface
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function testPatch(): void
+    {
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())
+            ->method('patch')
+            ->with(
+                'test-url',
+                ['test-query-string' => 'test-value'],
+                [ApiRequestSenderInterface::HEADER_CONTENT_TYPE => ApiRequestSenderInterface::CONTENT_TYPE_JSON, 'test-header' => 'test-value'],
+                'test-request-body'
+            )
+            ->willReturn('test-response');
+
+        $responseTransformer = self::createMock(JsonToArrayTransformerInterface::class);
+        $responseTransformer->expects(self::once())
+            ->method('transform')
+            ->with(
+                'test-response',
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_PATCH, 'test-url', ['test-query-string' => 'test-value'])),
+            )
+            ->willReturn(['test-response-array']);
+
+        $requestTransformer = self::createMock(ArrayToJsonTransformerInterface::class);
+        $requestTransformer->expects(self::once())
+            ->method('transform')
+            ->with(
+                ['test-request-array'],
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_PATCH, 'test-url', ['test-query-string' => 'test-value'])),
+            )
+            ->willReturn('test-request-body');
+
+        $jsonApiRequestSender = new JsonApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
+        $actual = $jsonApiRequestSender->patch('test-url', ['test-query-string' => 'test-value'], ['test-header' => 'test-value'], ['test-request-array']);
+
+        self::assertSame(['test-response-array'], $actual);
+    }
+
+    /**
+     * @throws Exception
+     * @throws ParseJsonExceptionInterface
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function testPatchForm(): void
+    {
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())
+            ->method('patchForm')
+            ->with(
+                'test-url',
+                ['test-query-string' => 'test-value'],
+                ['test-header' => 'test-value'],
+                ['test-form-data-key' => 'test-form-data']
+            )
+            ->willReturn('test-response');
+
+        $responseTransformer = self::createMock(JsonToArrayTransformerInterface::class);
+        $responseTransformer->expects(self::once())
+            ->method('transform')
+            ->with(
+                'test-response',
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_PATCH, 'test-url', ['test-query-string' => 'test-value'])),
+            )
+            ->willReturn(['test-response-array']);
+
+        $requestTransformer = self::createStub(ArrayToJsonTransformerInterface::class);
+
+        $jsonApiRequestSender = new JsonApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
+        $actual = $jsonApiRequestSender->patchForm('test-url', ['test-query-string' => 'test-value'], ['test-header' => 'test-value'], ['test-form-data-key' => 'test-form-data']);
 
         self::assertSame(['test-response-array'], $actual);
     }
@@ -207,6 +323,87 @@ final class JsonApiRequestSenderTest extends TestCase
 
         $jsonApiRequestSender = new JsonApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
         $actual = $jsonApiRequestSender->post('test-url', ['test-query-string' => 'test-value'], ['test-header' => 'test-value']);
+
+        self::assertSame(['test-response-array'], $actual);
+    }
+
+    /**
+     * @throws Exception
+     * @throws ParseJsonExceptionInterface
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function testPut(): void
+    {
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())
+            ->method('put')
+            ->with(
+                'test-url',
+                ['test-query-string' => 'test-value'],
+                [ApiRequestSenderInterface::HEADER_CONTENT_TYPE => ApiRequestSenderInterface::CONTENT_TYPE_JSON, 'test-header' => 'test-value'],
+                'test-request-body'
+            )
+            ->willReturn('test-response');
+
+        $responseTransformer = self::createMock(JsonToArrayTransformerInterface::class);
+        $responseTransformer->expects(self::once())
+            ->method('transform')
+            ->with(
+                'test-response',
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_PUT, 'test-url', ['test-query-string' => 'test-value'])),
+            )
+            ->willReturn(['test-response-array']);
+
+        $requestTransformer = self::createMock(ArrayToJsonTransformerInterface::class);
+        $requestTransformer->expects(self::once())
+            ->method('transform')
+            ->with(
+                ['test-request-array'],
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_PUT, 'test-url', ['test-query-string' => 'test-value'])),
+            )
+            ->willReturn('test-request-body');
+
+        $jsonApiRequestSender = new JsonApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
+        $actual = $jsonApiRequestSender->put('test-url', ['test-query-string' => 'test-value'], ['test-header' => 'test-value'], ['test-request-array']);
+
+        self::assertSame(['test-response-array'], $actual);
+    }
+
+    /**
+     * @throws Exception
+     * @throws ParseJsonExceptionInterface
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function testPutForm(): void
+    {
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())
+            ->method('putForm')
+            ->with(
+                'test-url',
+                ['test-query-string' => 'test-value'],
+                ['test-header' => 'test-value'],
+                ['test-form-data-key' => 'test-form-data']
+            )
+            ->willReturn('test-response');
+
+        $responseTransformer = self::createMock(JsonToArrayTransformerInterface::class);
+        $responseTransformer->expects(self::once())
+            ->method('transform')
+            ->with(
+                'test-response',
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_PUT, 'test-url', ['test-query-string' => 'test-value'])),
+            )
+            ->willReturn(['test-response-array']);
+
+        $requestTransformer = self::createStub(ArrayToJsonTransformerInterface::class);
+
+        $jsonApiRequestSender = new JsonApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
+        $actual = $jsonApiRequestSender->putForm('test-url', ['test-query-string' => 'test-value'], ['test-header' => 'test-value'], ['test-form-data-key' => 'test-form-data']);
 
         self::assertSame(['test-response-array'], $actual);
     }

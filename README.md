@@ -82,6 +82,33 @@ try {
 
 
 
+### `PUT`, `PATCH` and `DELETE`
+
+
+
+The remaining verbs follow the same shape. `put` and `patch` take a body array and send it as JSON;
+`putForm` and `patchForm` send it as `application/x-www-form-urlencoded`; `delete` takes no body.
+
+```php
+use ChristianBrown\ApiClient\Exception\ExceptionInterface;
+
+try {
+    $data = $jsonApiRequestSender->put('url', [], [], ['body-key-1' => 'body-value-1']);
+    $data = $jsonApiRequestSender->patch('url', [], [], ['body-key-1' => 'body-value-1']);
+    $data = $jsonApiRequestSender->putForm('url', [], [], ['body-key-1' => 'body-value-1']);
+    $data = $jsonApiRequestSender->patchForm('url', [], [], ['body-key-1' => 'body-value-1']);
+    $data = $jsonApiRequestSender->delete('url');
+} catch (ExceptionInterface $e) {
+    print $e->getMessage();
+}
+```
+
+An endpoint that answers `204 No Content` has no JSON body to decode, so reach for the raw
+`ApiRequestSenderInterface` (`$apiClient->getApiRequestSender()`) for those and ignore the empty
+string it returns.
+
+
+
 ## :rotating_light: Error handling
 
 The main value-add of this library is that it catches Guzzle's transport-specific exceptions and
