@@ -71,7 +71,7 @@ final class JsonApiRequestSenderTest extends TestCase
             ->with(
                 'test-url',
                 ['test-query-string' => 'test-value'],
-                ['test-header' => 'test-value'],
+                [ApiRequestSenderInterface::HEADER_CONTENT_TYPE => ApiRequestSenderInterface::CONTENT_TYPE_JSON, 'test-header' => 'test-value'],
                 'test-request-body'
             )
             ->willReturn('test-response');
@@ -144,6 +144,43 @@ final class JsonApiRequestSenderTest extends TestCase
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
+    public function testPostKeepsACallerSuppliedContentType(): void
+    {
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())
+            ->method('post')
+            ->with(
+                'test-url',
+                [],
+                [ApiRequestSenderInterface::HEADER_CONTENT_TYPE => 'application/merge-patch+json'],
+                null
+            )
+            ->willReturn('test-response');
+
+        $responseTransformer = self::createMock(JsonToArrayTransformerInterface::class);
+        $responseTransformer->expects(self::once())
+            ->method('transform')
+            ->with(
+                'test-response',
+                self::equalTo(new RequestContext(ApiRequestSenderInterface::METHOD_POST, 'test-url', [])),
+            )
+            ->willReturn(['test-response-array']);
+
+        $requestTransformer = self::createStub(ArrayToJsonTransformerInterface::class);
+
+        $jsonApiRequestSender = new JsonApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
+        $actual = $jsonApiRequestSender->post('test-url', [], [ApiRequestSenderInterface::HEADER_CONTENT_TYPE => 'application/merge-patch+json']);
+
+        self::assertSame(['test-response-array'], $actual);
+    }
+
+    /**
+     * @throws Exception
+     * @throws ParseJsonExceptionInterface
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
     public function testPostWithoutBody(): void
     {
         $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
@@ -152,7 +189,7 @@ final class JsonApiRequestSenderTest extends TestCase
             ->with(
                 'test-url',
                 ['test-query-string' => 'test-value'],
-                ['test-header' => 'test-value'],
+                [ApiRequestSenderInterface::HEADER_CONTENT_TYPE => ApiRequestSenderInterface::CONTENT_TYPE_JSON, 'test-header' => 'test-value'],
                 null
             )
             ->willReturn('test-response');
