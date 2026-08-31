@@ -11,6 +11,8 @@ use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsExceptionInterfa
 use ChristianBrown\ApiClient\Transformer\ArrayToJsonTransformerInterface;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 
+use function array_merge;
+
 final class JsonApiRequestSender implements JsonApiRequestSenderInterface
 {
     private ApiRequestSenderInterface $apiRequestSender;
@@ -63,6 +65,8 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
         if (null !== $requestBodyArray) {
             $requestBodyString = $this->requestTransformer->transform($requestBodyArray, $context);
         }
+        // Default the JSON content type, but let a caller-supplied header win.
+        $requestHeaders = array_merge([ApiRequestSenderInterface::HEADER_CONTENT_TYPE => ApiRequestSenderInterface::CONTENT_TYPE_JSON], $requestHeaders);
         $contents = $this->apiRequestSender->post($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyString);
 
         return $this->responseTransformer->transform($contents, $context);
