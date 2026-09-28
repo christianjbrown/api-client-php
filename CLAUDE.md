@@ -17,10 +17,9 @@ through a Symfony `ContainerBuilder` DI container.
 
 Binaries install into `bin/` (Composer `bin-dir`), not `vendor/bin/`. Both `bin/` and `vendor/` are
 gitignored and Composer-installed, so run `composer install` first. The style tooling comes from the
-private `christianjbrown/code-quality-scripts` dev dependency: `check-style` runs **PHP_CodeSniffer 4**
+`christianjbrown/code-quality-scripts` dev dependency: `check-style` runs **PHP_CodeSniffer 4**
 with the `ChristianBrown` standard (slevomat sniffs plus PSR/PEAR/Squiz/Generic), while **php-cs-fixer**
-handles formatting via the `@PhpCsFixer`/`@Symfony` rule sets; installing it needs SSH/`COMPOSER_AUTH`
-access to the private repo.
+handles formatting via the `@PhpCsFixer`/`@Symfony` rule sets.
 
 | Task | Command |
 | --- | --- |
