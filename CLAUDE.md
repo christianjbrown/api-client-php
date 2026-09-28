@@ -17,10 +17,9 @@ through a Symfony `ContainerBuilder` DI container.
 
 Binaries install into `bin/` (Composer `bin-dir`), not `vendor/bin/`. Both `bin/` and `vendor/` are
 gitignored and Composer-installed, so run `composer install` first. The style tooling comes from the
-private `christianjbrown/code-quality-scripts` dev dependency: `check-style` runs **PHP_CodeSniffer 4**
-with the `ChristianBrown` standard (slevomat sniffs plus PSR/PEAR/Squiz/Generic), while **php-cs-fixer**
-handles formatting via the `@PhpCsFixer`/`@Symfony` rule sets; installing it needs SSH/`COMPOSER_AUTH`
-access to the private repo.
+`christianjbrown/code-quality-scripts` dev dependency (public, on Packagist): `check-style` runs
+**PHP_CodeSniffer 4** with the `ChristianBrown` standard (slevomat sniffs plus PSR/PEAR/Squiz/Generic),
+while **php-cs-fixer** handles formatting via the `@PhpCsFixer`/`@Symfony` rule sets.
 
 | Task | Command |
 | --- | --- |
@@ -34,18 +33,23 @@ access to the private repo.
 
 Always run `composer fix-style` first (php-cs-fixer auto-fixes what it can), then `composer
 check-style` to surface remaining violations that must be fixed by hand, then `composer stan`, then
-`composer test` before finishing. CI (`.github/workflows/ci.yml`) runs the same three gates —
-style → PHPStan → PHPUnit-with-coverage — on push/PR to `main`.
+`composer test` before finishing. CI (`.github/workflows/ci.yml`) runs the same gates — style →
+PHPStan → PHPUnit-with-coverage → `bin/php-coverage-check` against the text coverage report — on
+push/PR to `main`, and fails the build if coverage drops below 100%.
 
 ## Architecture
 
 Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirrored 1:1 under
 `ChristianBrown\ApiClient\Tests\` (`tests/`). A layered decorator design:
 
-- **`ApiClient`** (`src/ApiClient.php`) — the facade/entry point. Constructed with no arguments, it
-  builds a Symfony `ContainerBuilder` and registers Guzzle, the four transformers, and the three
-  senders as services (ids are `SERVICE_*` constants on `ApiClientInterface`). Exposes
+- **`ApiClient`** (`src/ApiClient.php`) — the facade/entry point and service locator. Constructed
+  with no arguments (or an optional injected `ApiClientContainerFactoryInterface`, for testing),
+  it delegates building the Symfony `ContainerBuilder` to `ApiClientContainerFactory` and exposes
   `getApiRequestSender()`, `getJsonApiRequestSender()`, `getXmlApiRequestSender()`.
+- **`ApiClientContainerFactory`** (`src/ApiClientContainerFactory.php`) — builds the `ContainerBuilder`
+  and registers Guzzle, the four transformers, and the three senders as services (ids are
+  `SERVICE_*` constants on `ApiClientInterface`). Behind `ApiClientContainerFactoryInterface`, so
+  `ApiClient` depends on the abstraction rather than constructing a `ContainerBuilder` itself.
 - **`ApiRequestSender`** — the raw HTTP layer over Guzzle's `ClientInterface`. `get`/`delete` (no
   body), `post`/`put`/`patch` (raw body) and `postForm`/`putForm`/`patchForm` (form-encoded body)
   build a PSR-7 `Request`, send it, translate Guzzle exceptions into this library's own types, and

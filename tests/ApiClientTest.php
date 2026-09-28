@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace ChristianBrown\ApiClient\Tests;
 
 use ChristianBrown\ApiClient\ApiClient;
+use ChristianBrown\ApiClient\ApiClientContainerFactory;
+use ChristianBrown\ApiClient\ApiClientContainerFactoryInterface;
 use ChristianBrown\ApiClient\ApiRequestSender;
 use ChristianBrown\ApiClient\JsonApiRequestSender;
 use ChristianBrown\ApiClient\Transformer\ArrayToJsonTransformer;
@@ -18,6 +20,7 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
 #[CoversClass(ApiClient::class)]
+#[CoversClass(ApiClientContainerFactory::class)]
 #[CoversClass(ApiRequestSender::class)]
 #[CoversClass(ArrayToJsonTransformer::class)]
 #[CoversClass(JsonApiRequestSender::class)]
@@ -43,5 +46,23 @@ final class ApiClientTest extends TestCase
 
         $xmlApiRequestSender = $apiClient->getXmlApiRequestSender();
         self::assertInstanceOf(XmlApiRequestSender::class, $xmlApiRequestSender);
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function testConstructorUsesInjectedContainerFactory(): void
+    {
+        $container = (new ApiClientContainerFactory())->create();
+
+        $containerFactory = self::createMock(ApiClientContainerFactoryInterface::class);
+        $containerFactory->expects(self::once())
+            ->method('create')
+            ->willReturn($container);
+
+        $apiClient = new ApiClient($containerFactory);
+
+        self::assertInstanceOf(ApiRequestSender::class, $apiClient->getApiRequestSender());
     }
 }
