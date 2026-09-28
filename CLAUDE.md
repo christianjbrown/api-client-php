@@ -42,10 +42,14 @@ push/PR to `main`, and fails the build if coverage drops below 100%.
 Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirrored 1:1 under
 `ChristianBrown\ApiClient\Tests\` (`tests/`). A layered decorator design:
 
-- **`ApiClient`** (`src/ApiClient.php`) — the facade/entry point. Constructed with no arguments, it
-  builds a Symfony `ContainerBuilder` and registers Guzzle, the four transformers, and the three
-  senders as services (ids are `SERVICE_*` constants on `ApiClientInterface`). Exposes
+- **`ApiClient`** (`src/ApiClient.php`) — the facade/entry point and service locator. Constructed
+  with no arguments (or an optional injected `ApiClientContainerFactoryInterface`, for testing),
+  it delegates building the Symfony `ContainerBuilder` to `ApiClientContainerFactory` and exposes
   `getApiRequestSender()`, `getJsonApiRequestSender()`, `getXmlApiRequestSender()`.
+- **`ApiClientContainerFactory`** (`src/ApiClientContainerFactory.php`) — builds the `ContainerBuilder`
+  and registers Guzzle, the four transformers, and the three senders as services (ids are
+  `SERVICE_*` constants on `ApiClientInterface`). Behind `ApiClientContainerFactoryInterface`, so
+  `ApiClient` depends on the abstraction rather than constructing a `ContainerBuilder` itself.
 - **`ApiRequestSender`** — the raw HTTP layer over Guzzle's `ClientInterface`. `get`/`delete` (no
   body), `post`/`put`/`patch` (raw body) and `postForm`/`putForm`/`patchForm` (form-encoded body)
   build a PSR-7 `Request`, send it, translate Guzzle exceptions into this library's own types, and
