@@ -33,8 +33,9 @@ handles formatting via the `@PhpCsFixer`/`@Symfony` rule sets.
 
 Always run `composer fix-style` first (php-cs-fixer auto-fixes what it can), then `composer
 check-style` to surface remaining violations that must be fixed by hand, then `composer stan`, then
-`composer test` before finishing. CI (`.github/workflows/ci.yml`) runs the same three gates —
-style → PHPStan → PHPUnit-with-coverage — on push/PR to `main`.
+`composer test` before finishing. CI (`.github/workflows/ci.yml`) runs the same gates — style →
+PHPStan → PHPUnit-with-coverage → `bin/php-coverage-check` against the text coverage report — on
+push/PR to `main`, and fails the build if coverage drops below 100%.
 
 ## Architecture
 
