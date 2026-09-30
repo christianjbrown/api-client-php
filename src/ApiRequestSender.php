@@ -6,6 +6,8 @@ namespace ChristianBrown\ApiClient;
 
 use ChristianBrown\ApiClient\Exception\Request\ConnectException;
 use ChristianBrown\ApiClient\Exception\Request\ConnectExceptionInterface;
+use ChristianBrown\ApiClient\Exception\Request\TransferException;
+use ChristianBrown\ApiClient\Exception\Request\TransferExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseException;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsException;
@@ -14,6 +16,7 @@ use ChristianBrown\ApiClient\Redactor\GuzzleExceptionRedactorInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\BadResponseException as GuzzleBadResponseException;
 use GuzzleHttp\Exception\ConnectException as GuzzleConnectException;
+use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException as GuzzleTooManyRedirectsException;
 use GuzzleHttp\Psr7\Request;
 
@@ -38,6 +41,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @param array<string, string> $requestHeaders
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
@@ -52,6 +56,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @param array<string, string> $requestHeaders
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
@@ -67,6 +72,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @param null|string           $requestBody         The raw request body
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
@@ -82,6 +88,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @param array<string, string> $requestBodyFormData
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
@@ -97,6 +104,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @param null|string           $requestBody         The raw request body
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
@@ -112,6 +120,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @param array<string, string> $requestBodyFormData
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
@@ -127,6 +136,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @param null|string           $requestBody         The raw request body
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
@@ -142,6 +152,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @param array<string, string> $requestBodyFormData
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
@@ -161,6 +172,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @param array<string, string> $requestBodyFormData
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
@@ -180,6 +192,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
      * @param null|string           $requestBody         The raw request body
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
@@ -206,6 +219,10 @@ final class ApiRequestSender implements ApiRequestSenderInterface
             $redactedException = $this->exceptionRedactor->redactTooManyRedirectsException($exception);
 
             throw new TooManyRedirectsException($redactedException->getRequest(), $redactedException);
+        } catch (GuzzleRequestException $exception) {
+            $redactedException = $this->exceptionRedactor->redactRequestException($exception);
+
+            throw new TransferException($redactedException->getRequest(), $redactedException);
         }
 
         $requestBody = $response->getBody();

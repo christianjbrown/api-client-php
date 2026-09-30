@@ -6,6 +6,7 @@ namespace ChristianBrown\ApiClient;
 
 use ChristianBrown\ApiClient\Exception\Parse\ParseXmlExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Request\ConnectExceptionInterface;
+use ChristianBrown\ApiClient\Exception\Request\TransferExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsExceptionInterface;
 use ChristianBrown\ApiClient\Transformer\StringToXmlDocTransformerInterface;
@@ -31,6 +32,7 @@ final class XmlApiRequestSender implements XmlApiRequestSenderInterface
      * @param array<string, string> $requestHeaders
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws ParseXmlExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
@@ -49,6 +51,7 @@ final class XmlApiRequestSender implements XmlApiRequestSenderInterface
      * @param null|DOMDocument      $requestDomDocument  The request body document
      *
      * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
      * @throws ParseXmlExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface

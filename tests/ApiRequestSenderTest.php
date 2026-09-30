@@ -10,6 +10,8 @@ use ChristianBrown\ApiClient\Exception\Parse\ParseJsonException;
 use ChristianBrown\ApiClient\Exception\Parse\ParseXmlException;
 use ChristianBrown\ApiClient\Exception\Request\ConnectException;
 use ChristianBrown\ApiClient\Exception\Request\ConnectExceptionInterface;
+use ChristianBrown\ApiClient\Exception\Request\TransferException;
+use ChristianBrown\ApiClient\Exception\Request\TransferExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseException;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsException;
@@ -21,6 +23,7 @@ use ChristianBrown\ApiClient\Redactor\RequestRedactorInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\BadResponseException as GuzzleBadResponseException;
 use GuzzleHttp\Exception\ConnectException as GuzzleConnectException;
+use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException as GuzzleTooManyRedirectsException;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Request;
@@ -40,6 +43,7 @@ use Throwable;
 #[CoversClass(ConnectException::class)]
 #[CoversClass(BadResponseException::class)]
 #[CoversClass(TooManyRedirectsException::class)]
+#[CoversClass(TransferException::class)]
 #[CoversClass(GuzzleExceptionRedactor::class)]
 #[CoversClass(RequestRedactor::class)]
 final class ApiRequestSenderTest extends TestCase
@@ -304,6 +308,57 @@ final class ApiRequestSenderTest extends TestCase
         }
 
         self::assertTrue($tooManyRedirectsExceptionThrown);
+    }
+
+    /**
+     * @param string                            $function              The sender method to invoke
+     * @param array<int, mixed>                 $functionArgs
+     * @param string                            $expectedRequestMethod The expected HTTP request method
+     * @param array<string, array<int, string>> $expectedHeaders
+     * @param string                            $expectedRequestBody   The expected request body
+     * @param string                            $expectedRequestUrl    The expected request URL
+     * @param string                            $responseBodyContent   The stubbed response body content
+     *
+     * @throws ConnectException
+     * @throws Exception
+     * @throws ParseJsonException
+     * @throws ParseXmlException
+     * @throws BadResponseException
+     * @throws TooManyRedirectsException
+     */
+    #[TestWith(['delete', ['test-url', ['test-query-string-key-1' => 'test-query-string-value-1'], ['test-header-1']], ApiRequestSenderInterface::METHOD_DELETE, [['test-header-1']], '', 'test-url?test-query-string-key-1=test-query-string-value-1', 'test-response'])]
+    #[TestWith(['get', ['test-url', ['test-query-string-key-1' => 'test-query-string-value-1'], ['test-header-1']], ApiRequestSenderInterface::METHOD_GET, [['test-header-1']], '', 'test-url?test-query-string-key-1=test-query-string-value-1', 'test-response'])]
+    #[TestWith(['patch', ['test-url', ['test-query-string-key-1' => 'test-query-string-value-1'], ['test-header-1'], 'test-body'], ApiRequestSenderInterface::METHOD_PATCH, [['test-header-1']], 'test-body', 'test-url?test-query-string-key-1=test-query-string-value-1', 'test-response'])]
+    #[TestWith(['post', ['test-url', ['test-query-string-key-1' => 'test-query-string-value-1'], ['test-header-1'], 'test-body'], ApiRequestSenderInterface::METHOD_POST, [['test-header-1']], 'test-body', 'test-url?test-query-string-key-1=test-query-string-value-1', 'test-response'])]
+    #[TestWith(['put', ['test-url', ['test-query-string-key-1' => 'test-query-string-value-1'], ['test-header-1'], 'test-body'], ApiRequestSenderInterface::METHOD_PUT, [['test-header-1']], 'test-body', 'test-url?test-query-string-key-1=test-query-string-value-1', 'test-response'])]
+    #[TestWith(['patchForm', ['test-url', ['test-query-string-key-1' => 'test-query-string-value-1'], ['test-header-1'], ['test-body-key-1' => 'test-body-value-1']], ApiRequestSenderInterface::METHOD_PATCH, [ApiRequestSenderInterface::HEADER_CONTENT_TYPE => [ApiRequestSenderInterface::CONTENT_TYPE_FORM_URLENCODED], ['test-header-1']], 'test-body-key-1=test-body-value-1', 'test-url?test-query-string-key-1=test-query-string-value-1', 'test-response'])]
+    #[TestWith(['postForm', ['test-url', ['test-query-string-key-1' => 'test-query-string-value-1'], ['test-header-1'], ['test-body-key-1' => 'test-body-value-1']], ApiRequestSenderInterface::METHOD_POST, [ApiRequestSenderInterface::HEADER_CONTENT_TYPE => [ApiRequestSenderInterface::CONTENT_TYPE_FORM_URLENCODED], ['test-header-1']], 'test-body-key-1=test-body-value-1', 'test-url?test-query-string-key-1=test-query-string-value-1', 'test-response'])]
+    #[TestWith(['putForm', ['test-url', ['test-query-string-key-1' => 'test-query-string-value-1'], ['test-header-1'], ['test-body-key-1' => 'test-body-value-1']], ApiRequestSenderInterface::METHOD_PUT, [ApiRequestSenderInterface::HEADER_CONTENT_TYPE => [ApiRequestSenderInterface::CONTENT_TYPE_FORM_URLENCODED], ['test-header-1']], 'test-body-key-1=test-body-value-1', 'test-url?test-query-string-key-1=test-query-string-value-1', 'test-response'])]
+    public function testTransferException(string $function, array $functionArgs, string $expectedRequestMethod, array $expectedHeaders, string $expectedRequestBody, string $expectedRequestUrl, string $responseBodyContent): void
+    {
+        $guzzleRequestException = self::createStub(GuzzleRequestException::class);
+
+        $redactedRequest = new Request(ApiRequestSenderInterface::METHOD_GET, 'test-redacted-url');
+        $redactedException = new GuzzleRequestException('test-message', $redactedRequest);
+        $exceptionRedactor = self::createMock(GuzzleExceptionRedactorInterface::class);
+        $exceptionRedactor->expects(self::once())
+            ->method('redactRequestException')
+            ->with($guzzleRequestException)
+            ->willReturn($redactedException);
+
+        $requestSender = self::getRequestSenderForException($expectedRequestMethod, $expectedHeaders, $expectedRequestBody, $expectedRequestUrl, $responseBodyContent, $exceptionRedactor, $guzzleRequestException);
+        $transferExceptionThrown = false;
+
+        try {
+            $requestSender->{$function}(...$functionArgs);
+        } catch (TransferExceptionInterface $e) {
+            $transferExceptionThrown = true;
+
+            self::assertSame($redactedRequest, $e->getRequest());
+            self::assertSame($redactedException, $e->getPrevious());
+        }
+
+        self::assertTrue($transferExceptionThrown);
     }
 
     /**

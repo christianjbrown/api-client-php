@@ -74,7 +74,7 @@ Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirro
   `XmlDocToStringTransformer`. `transform()` takes the method/URL/query context only so a parse
   failure can report where it happened.
 - **`Exception/`** — the normalized hierarchy, rooted at `ExceptionInterface extends Throwable`.
-  Request branch: `ConnectException`. Response branch: `BadResponseException`,
+  Request branch: `ConnectException`, `TransferException` (any other Guzzle `RequestException`). Response branch: `BadResponseException`,
   `TooManyRedirectsException` (carry the PSR-7 request + response, code = HTTP status; expose
   `getDecodedBody(): ?array` so callers can inspect a JSON error payload without touching the raw PSR-7
   body — null when the body is not a JSON array/object). Parse branch:

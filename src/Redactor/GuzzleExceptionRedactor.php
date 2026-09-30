@@ -6,6 +6,7 @@ namespace ChristianBrown\ApiClient\Redactor;
 
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
 
 final class GuzzleExceptionRedactor implements GuzzleExceptionRedactorInterface
@@ -35,6 +36,16 @@ final class GuzzleExceptionRedactor implements GuzzleExceptionRedactorInterface
         $request = $this->requestRedactor->redact($exception->getRequest());
 
         return new ConnectException($exception->getMessage(), $request, null, $exception->getHandlerContext());
+    }
+
+    /**
+     * @param RequestException $exception The exception Guzzle threw
+     */
+    public function redactRequestException(RequestException $exception): RequestException
+    {
+        $request = $this->requestRedactor->redact($exception->getRequest());
+
+        return new RequestException($exception->getMessage(), $request, $exception->getResponse(), null, $exception->getHandlerContext());
     }
 
     /**

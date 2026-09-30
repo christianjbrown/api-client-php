@@ -6,6 +6,7 @@ namespace ChristianBrown\ApiClient\Redactor;
 
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
 
 /**
@@ -26,6 +27,11 @@ interface GuzzleExceptionRedactorInterface
      * @param ConnectException $exception The exception Guzzle threw
      */
     public function redactConnectException(ConnectException $exception): ConnectException;
+
+    /**
+     * @param RequestException $exception The exception Guzzle threw
+     */
+    public function redactRequestException(RequestException $exception): RequestException;
 
     /**
      * @param TooManyRedirectsException $exception The exception Guzzle threw

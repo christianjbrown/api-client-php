@@ -9,6 +9,7 @@ use ChristianBrown\ApiClient\Redactor\GuzzleExceptionRedactor;
 use ChristianBrown\ApiClient\Redactor\RequestRedactorInterface;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
@@ -57,6 +58,26 @@ final class GuzzleExceptionRedactorTest extends TestCase
 
         self::assertSame('test-message', $actual->getMessage());
         self::assertSame($redactedRequest, $actual->getRequest());
+        self::assertSame(self::HANDLER_CONTEXT, $actual->getHandlerContext());
+        self::assertNull($actual->getPrevious());
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testRedactRequestException(): void
+    {
+        $request = self::createSentRequest();
+        $redactedRequest = self::createRedactedRequest();
+        $response = new Response(200);
+        $exception = new RequestException('test-message', $request, $response, new RuntimeException(), self::HANDLER_CONTEXT);
+
+        $redactor = new GuzzleExceptionRedactor($this->createRequestRedactor($request, $redactedRequest));
+        $actual = $redactor->redactRequestException($exception);
+
+        self::assertSame('test-message', $actual->getMessage());
+        self::assertSame($redactedRequest, $actual->getRequest());
+        self::assertSame($response, $actual->getResponse());
         self::assertSame(self::HANDLER_CONTEXT, $actual->getHandlerContext());
         self::assertNull($actual->getPrevious());
     }

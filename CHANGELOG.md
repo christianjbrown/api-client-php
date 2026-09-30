@@ -6,6 +6,13 @@ All notable changes to this package are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `TransferException`, thrown when a request fails in transit for a reason other than failing to
+  connect, such as a connection dropped mid-response or a rejected TLS certificate. Guzzle reports
+  these as a plain `RequestException`, which used to escape unwrapped, bypassing both
+  `ExceptionInterface` and the redaction.
+
 ### Changed
 
 - The Guzzle exception on `getPrevious()` is now a copy built around the redacted request, not the
