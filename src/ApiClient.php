@@ -14,7 +14,7 @@ final class ApiClient implements ApiClientInterface
 
     public function __construct(?ApiClientContainerFactoryInterface $containerFactory = null)
     {
-        $this->container = ($containerFactory ?? new ApiClientContainerFactory())->create();
+        $this->container = ($containerFactory ?? new ApiClientContainerFactory(new ClientOptions()))->create();
     }
 
     /**

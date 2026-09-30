@@ -8,6 +8,7 @@ use ChristianBrown\ApiClient\ApiClient;
 use ChristianBrown\ApiClient\ApiClientContainerFactory;
 use ChristianBrown\ApiClient\ApiClientContainerFactoryInterface;
 use ChristianBrown\ApiClient\ApiRequestSender;
+use ChristianBrown\ApiClient\ClientOptions;
 use ChristianBrown\ApiClient\JsonApiRequestSender;
 use ChristianBrown\ApiClient\Redactor\GuzzleExceptionRedactor;
 use ChristianBrown\ApiClient\Redactor\RequestRedactor;
@@ -25,6 +26,7 @@ use Psr\Container\NotFoundExceptionInterface;
 #[CoversClass(ApiClientContainerFactory::class)]
 #[CoversClass(ApiRequestSender::class)]
 #[CoversClass(ArrayToJsonTransformer::class)]
+#[CoversClass(ClientOptions::class)]
 #[CoversClass(GuzzleExceptionRedactor::class)]
 #[CoversClass(JsonApiRequestSender::class)]
 #[CoversClass(JsonToArrayTransformer::class)]
@@ -58,7 +60,7 @@ final class ApiClientTest extends TestCase
      */
     public function testConstructorUsesInjectedContainerFactory(): void
     {
-        $container = (new ApiClientContainerFactory())->create();
+        $container = (new ApiClientContainerFactory(new ClientOptions()))->create();
 
         $containerFactory = self::createMock(ApiClientContainerFactoryInterface::class);
         $containerFactory->expects(self::once())

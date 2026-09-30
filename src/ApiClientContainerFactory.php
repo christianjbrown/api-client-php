@@ -13,15 +13,31 @@ use ChristianBrown\ApiClient\Transformer\StringToXmlDocTransformer;
 use ChristianBrown\ApiClient\Transformer\XmlDocToStringTransformer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
+use GuzzleHttp\RequestOptions;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 final class ApiClientContainerFactory implements ApiClientContainerFactoryInterface
 {
+    private ClientOptionsInterface $clientOptions;
+
+    public function __construct(ClientOptionsInterface $clientOptions)
+    {
+        $this->clientOptions = $clientOptions;
+    }
+
     public function create(): ContainerBuilder
     {
         $container = new ContainerBuilder();
 
-        $container->register(ApiClientInterface::SERVICE_GUZZLE_CLIENT, Client::class);
+        $container->register(ApiClientInterface::SERVICE_GUZZLE_CLIENT, Client::class)
+            ->setArguments(
+                [
+                    [
+                        RequestOptions::CONNECT_TIMEOUT => $this->clientOptions->getConnectTimeout(),
+                        RequestOptions::TIMEOUT => $this->clientOptions->getTimeout(),
+                    ],
+                ]
+            );
         $container->register(ApiClientInterface::SERVICE_GUZZLE_HTTP_FACTORY, HttpFactory::class);
 
         $container->register(ApiClientInterface::SERVICE_REDACTOR_REQUEST, RequestRedactor::class)
