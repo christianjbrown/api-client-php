@@ -37,6 +37,12 @@ check-style` to surface remaining violations that must be fixed by hand, then `c
 PHPStan → PHPUnit-with-coverage → `bin/php-coverage-check` against the text coverage report — on
 push/PR to `main`, and fails the build if coverage drops below 100%.
 
+## Changelog
+
+`CHANGELOG.md` follows Keep a Changelog. A pull request that changes `src/` must add a line under
+`## [Unreleased]`; CI enforces it with `bin/php-changelog-check`. A release renames that section to the
+version and the date, and its text becomes the GitHub release notes.
+
 ## Architecture
 
 Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirrored 1:1 under
