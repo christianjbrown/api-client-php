@@ -62,6 +62,11 @@ Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirro
   return the raw response body as a `string`. All of them funnel through the private `sendRequest()`;
   the form variants go via `sendFormRequest()`, which renders the body and defaults the
   `Content-Type` header while letting a caller-supplied one win.
+- **`Redactor/`** - keeps credentials out of thrown exceptions. `RequestRedactor` strips the headers in
+  `RequestRedactorInterface::SENSITIVE_HEADERS` and empties the body. `GuzzleExceptionRedactor`
+  rebuilds the caught Guzzle exception around that redacted request, because the original holds the
+  request exactly as sent and would otherwise leak it through `getPrevious()`. `ApiRequestSender`
+  throws with the rebuilt exception as previous and its request as `getRequest()`.
 - **`JsonApiRequestSender` / `XmlApiRequestSender`** — decorate the raw sender, injecting transformers
   to (de)serialize. JSON senders return `array`; XML senders return `DOMDocument`.
 - **`Transformer/`** — four single-responsibility (de)serializers, each behind an interface:
@@ -69,7 +74,7 @@ Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirro
   `XmlDocToStringTransformer`. `transform()` takes the method/URL/query context only so a parse
   failure can report where it happened.
 - **`Exception/`** — the normalized hierarchy, rooted at `ExceptionInterface extends Throwable`.
-  Request branch: `ConnectException`. Response branch: `BadResponseException`,
+  Request branch: `ConnectException`, `TransferException` (any other Guzzle `RequestException`). Response branch: `BadResponseException`,
   `TooManyRedirectsException` (carry the PSR-7 request + response, code = HTTP status; expose
   `getDecodedBody(): ?array` so callers can inspect a JSON error payload without touching the raw PSR-7
   body — null when the body is not a JSON array/object). Parse branch:
@@ -149,13 +154,16 @@ The `phpunit.xml` config is strict (`requireCoverageMetadata`, `beStrictAboutCov
     interaction and satisfies the "must configure an expectation" check. The sender tests
     (`Json`/`Xml`) mock `apiRequestSender`/the transformers this way to prove the correct
     method/URL/query context is forwarded.
-  - Both factories are **static**, so call them as `self::createStub(...)`/`self::createMock(...)`
-    (matching the `self::assertSame(...)` assertion style), not `$this->...`.
+  - Call them as `self::createStub(...)`/`self::createMock(...)`, matching the
+    `self::assertSame(...)` assertion style. `createStub()` is static, but `createMock()` and `once()`
+    are instance methods, so a helper that builds a mock cannot be `static`: PHPStan reports
+    `method.staticCall`. Make that helper an instance method and use `$this->createMock(...)` in it.
 - Assert statically (`self::assertSame`) and reference the **same interface constants** production
   code uses — for both data and expected exception messages — so no strings are hardcoded.
   `ApiRequestSenderTest` stubs Guzzle's `ClientInterface` (asserting on the outgoing PSR-7 request
   inside the send callback) and verifies each Guzzle exception is translated into the correct library
-  exception with the original set as `getPrevious()`.
+  exception with the redacted copy set as `getPrevious()`. `testExceptionChainCarriesNoCredentials`
+  wires the real redactors and walks the chain end to end.
 
 ## Adding a feature
 
