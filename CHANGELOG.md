@@ -6,6 +6,16 @@ All notable changes to this package are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- The Guzzle exception on `getPrevious()` is now a copy built around the redacted request, not the
+  original. The original held the request exactly as sent, so the `Authorization` header came back out
+  through the exception chain.
+- The request stored on exceptions also loses the `apikey`, `X-Api-Key` and `Cookie` headers, and its
+  body is emptied, since a form body can carry a refresh token or client secret.
+- `ApiRequestSender` takes a `GuzzleExceptionRedactorInterface` as a second constructor argument.
+  `ApiClient` wires it for you. Code that builds `ApiRequestSender` itself has to pass one.
+
 ## [1.0.0] - 2026-09-28
 
 First stable release.

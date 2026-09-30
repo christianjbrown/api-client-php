@@ -10,12 +10,12 @@ use ChristianBrown\ApiClient\Exception\Response\BadResponseException;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsException;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsExceptionInterface;
+use ChristianBrown\ApiClient\Redactor\GuzzleExceptionRedactorInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\BadResponseException as GuzzleBadResponseException;
 use GuzzleHttp\Exception\ConnectException as GuzzleConnectException;
 use GuzzleHttp\Exception\TooManyRedirectsException as GuzzleTooManyRedirectsException;
 use GuzzleHttp\Psr7\Request;
-use Psr\Http\Message\RequestInterface;
 
 use function array_merge;
 use function http_build_query;
@@ -23,11 +23,13 @@ use function sprintf;
 
 final class ApiRequestSender implements ApiRequestSenderInterface
 {
+    private GuzzleExceptionRedactorInterface $exceptionRedactor;
     private ClientInterface $guzzle;
 
-    public function __construct(ClientInterface $guzzle)
+    public function __construct(ClientInterface $guzzle, GuzzleExceptionRedactorInterface $exceptionRedactor)
     {
         $this->guzzle = $guzzle;
+        $this->exceptionRedactor = $exceptionRedactor;
     }
 
     /**
@@ -149,26 +151,6 @@ final class ApiRequestSender implements ApiRequestSenderInterface
     }
 
     /**
-     * Strips credential-bearing headers from a clone of the request before it is stored on an
-     * exception, so a consumer that logs or serializes the exception cannot leak them. PSR-7 messages
-     * are immutable, so `withoutHeader()` returns a new instance and the original request — still in
-     * flight elsewhere — is left untouched.
-     *
-     * @param RequestInterface $request The request whose sensitive headers should be redacted
-     */
-    private static function redactSensitiveHeaders(RequestInterface $request): RequestInterface
-    {
-        /**
-         * @var RequestInterface $redactedRequest
-         */
-        $redactedRequest = $request
-            ->withoutHeader(self::HEADER_AUTHORIZATION)
-            ->withoutHeader(self::HEADER_PROXY_AUTHORIZATION);
-
-        return $redactedRequest;
-    }
-
-    /**
      * Renders `$requestBodyFormData` as an `application/x-www-form-urlencoded` body and sends it with
      * `$method`, defaulting the content type header while letting a caller-supplied one win.
      *
@@ -213,11 +195,17 @@ final class ApiRequestSender implements ApiRequestSenderInterface
         try {
             $response = $this->guzzle->send($request);
         } catch (GuzzleConnectException $exception) {
-            throw new ConnectException(self::redactSensitiveHeaders($request), $exception);
+            $redactedException = $this->exceptionRedactor->redactConnectException($exception);
+
+            throw new ConnectException($redactedException->getRequest(), $redactedException);
         } catch (GuzzleBadResponseException $exception) {
-            throw new BadResponseException(self::redactSensitiveHeaders($request), $exception);
+            $redactedException = $this->exceptionRedactor->redactBadResponseException($exception);
+
+            throw new BadResponseException($redactedException->getRequest(), $redactedException);
         } catch (GuzzleTooManyRedirectsException $exception) {
-            throw new TooManyRedirectsException(self::redactSensitiveHeaders($request), $exception);
+            $redactedException = $this->exceptionRedactor->redactTooManyRedirectsException($exception);
+
+            throw new TooManyRedirectsException($redactedException->getRequest(), $redactedException);
         }
 
         $requestBody = $response->getBody();
