@@ -44,6 +44,21 @@ $jsonApiRequestSender = $apiClient->getJsonApiRequestSender();
 // $xmlApiRequestSender = $apiClient->getXmlApiRequestSender();
 ```
 
+### Timeouts
+
+A request gives up after 30 seconds, or after 10 seconds if it cannot connect. To change either, pass
+your own `ClientOptions`. Use `0` to wait indefinitely.
+
+```php
+use ChristianBrown\ApiClient\ApiClient;
+use ChristianBrown\ApiClient\ApiClientContainerFactory;
+use ChristianBrown\ApiClient\ClientOptions;
+
+$apiClient = new ApiClient(new ApiClientContainerFactory(new ClientOptions(timeout: 60.0, connectTimeout: 5.0)));
+```
+
+A timeout surfaces as a `ConnectException`, because that is how Guzzle reports it.
+
 
 
 ### `POST` examples

@@ -8,6 +8,10 @@ All notable changes to this package are recorded here. The format follows
 
 ### Added
 
+- Request timeouts. The Guzzle client used to be built with none, so a request to an API that stopped
+  responding waited forever. It now gives up after 30 seconds, or 10 seconds without a connection.
+  Pass `new ApiClient(new ApiClientContainerFactory(new ClientOptions($timeout, $connectTimeout)))` to
+  change either, or 0 to wait indefinitely as before.
 - `TransferException`, thrown when a request fails in transit for a reason other than failing to
   connect, such as a connection dropped mid-response or a rejected TLS certificate. Guzzle reports
   these as a plain `RequestException`, which used to escape unwrapped, bypassing both
@@ -22,6 +26,8 @@ All notable changes to this package are recorded here. The format follows
   body is emptied, since a form body can carry a refresh token or client secret.
 - `ApiRequestSender` takes a `GuzzleExceptionRedactorInterface` as a second constructor argument.
   `ApiClient` wires it for you. Code that builds `ApiRequestSender` itself has to pass one.
+- `ApiClientContainerFactory` takes a `ClientOptionsInterface` as a constructor argument. `new ApiClient()`
+  passes the defaults for you.
 
 ## [1.0.0] - 2026-09-28
 

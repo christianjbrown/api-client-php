@@ -54,7 +54,10 @@ Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirro
   `getApiRequestSender()`, `getJsonApiRequestSender()`, `getXmlApiRequestSender()`.
 - **`ApiClientContainerFactory`** (`src/ApiClientContainerFactory.php`) — builds the `ContainerBuilder`
   and registers Guzzle, the four transformers, and the three senders as services (ids are
-  `SERVICE_*` constants on `ApiClientInterface`). Behind `ApiClientContainerFactoryInterface`, so
+  `SERVICE_*` constants on `ApiClientInterface`). It takes a `ClientOptionsInterface` and passes its
+  timeouts to the Guzzle client. `ClientOptions` defaults to 30 s total and 10 s to connect, because
+  Guzzle's own default of 0 waits forever; `ApiClient` builds one with those defaults when nothing is
+  injected. Behind `ApiClientContainerFactoryInterface`, so
   `ApiClient` depends on the abstraction rather than constructing a `ContainerBuilder` itself.
 - **`ApiRequestSender`** — the raw HTTP layer over Guzzle's `ClientInterface`. `get`/`delete` (no
   body), `post`/`put`/`patch` (raw body) and `postForm`/`putForm`/`patchForm` (form-encoded body)
