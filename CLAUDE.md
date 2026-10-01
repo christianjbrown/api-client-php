@@ -48,20 +48,21 @@ version and the date, and its text becomes the GitHub release notes.
 Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirrored 1:1 under
 `ChristianBrown\ApiClient\Tests\` (`tests/`). A layered decorator design:
 
-- **`ApiClient`** (`src/ApiClient.php`) — the facade/entry point and service locator. Constructed
-  with no arguments (or an optional injected `ApiClientContainerFactoryInterface`, for testing),
-  it delegates building the Symfony `ContainerBuilder` to `ApiClientContainerFactory` and exposes
-  `getApiRequestSender()`, `getJsonApiRequestSender()`, `getXmlApiRequestSender()`.
+- **`ApiClient`** (`src/ApiClient.php`) - the facade. Its constructor takes the three senders
+  (`ApiRequestSenderInterface`, `JsonApiRequestSenderInterface`, `XmlApiRequestSenderInterface`) and
+  exposes them through `getApiRequestSender()`, `getJsonApiRequestSender()`, `getXmlApiRequestSender()`.
+  It builds nothing and has no defaults.
+- **`ApiClientFactory`** (`src/ApiClientFactory.php`) - the composition root. Takes a
+  `ClientOptionsInterface`, builds the container through `ApiClientContainerFactory`, pulls the three
+  senders out and returns an `ApiClient`. Behind `ApiClientFactoryInterface`.
 - **`ApiClientContainerFactory`** (`src/ApiClientContainerFactory.php`) — builds the `ContainerBuilder`
   and registers Guzzle, the four transformers, and the three senders as services (ids are
   `SERVICE_*` constants on `ApiClientInterface`). It takes a `ClientOptionsInterface` and passes its
   timeouts to the Guzzle client. `ClientOptions` defaults to 30 s total and 10 s to connect, because
-  Guzzle's own default of 0 waits forever; `ApiClient` builds one with those defaults when nothing is
-  injected. Behind `ApiClientContainerFactoryInterface`, so
-  `ApiClient` depends on the abstraction rather than constructing a `ContainerBuilder` itself.
+  Guzzle's own default of 0 waits forever. Behind `ApiClientContainerFactoryInterface`.
 - **`ApiRequestSender`** — the raw HTTP layer over Guzzle's `ClientInterface`. `get`/`delete` (no
   body), `post`/`put`/`patch` (raw body) and `postForm`/`putForm`/`patchForm` (form-encoded body)
-  build a PSR-7 `Request`, send it, translate Guzzle exceptions into this library's own types, and
+  build a PSR-7 request through the injected PSR-17 `RequestFactoryInterface` and `StreamFactoryInterface`, send it, translate Guzzle exceptions into this library's own types, and
   return the raw response body as a `string`. All of them funnel through the private `sendRequest()`;
   the form variants go via `sendFormRequest()`, which renders the body and defaults the
   `Content-Type` header while letting a caller-supplied one win. The multipart variants
@@ -74,7 +75,11 @@ Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirro
   request exactly as sent and would otherwise leak it through `getPrevious()`. `ApiRequestSender`
   throws with the rebuilt exception as previous and its request as `getRequest()`.
 - **`JsonApiRequestSender` / `XmlApiRequestSender`** — decorate the raw sender, injecting transformers
-  to (de)serialize. JSON senders return `array`; XML senders return `DOMDocument`.
+  to (de)serialize. JSON senders return `array`; XML senders return `DOMDocument`. Every JSON verb goes
+  through the private `respond()`.
+- **Sender interfaces** - `ApiRequestSenderInterface` (and the `Json` one) compose narrow
+  `Read`, `Write`, `Form` and `Multipart` interfaces; depend on the narrowest that fits. The constants
+  stay on `ApiRequestSenderInterface`.
 - **`Transformer/`** — four single-responsibility (de)serializers, each behind an interface:
   `ArrayToJsonTransformer`, `JsonToArrayTransformer`, `StringToXmlDocTransformer`,
   `XmlDocToStringTransformer`. `transform()` takes the method/URL/query context only so a parse

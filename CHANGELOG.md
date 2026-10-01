@@ -6,6 +6,28 @@ All notable changes to this package are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `ApiClientFactory` and `ApiClientFactoryInterface`, the composition root that builds an `ApiClient`
+  from a `ClientOptionsInterface`.
+- Narrow sender interfaces: `ReadApiRequestSenderInterface`, `WriteApiRequestSenderInterface`,
+  `FormApiRequestSenderInterface` and `MultipartApiRequestSenderInterface`, plus the same four with a
+  `Json` prefix. `ApiRequestSenderInterface` and `JsonApiRequestSenderInterface` extend them, so
+  existing type hints keep working, and a consumer can now depend on only the verbs it uses.
+- `psr/http-factory` and `psr/http-message` as declared requirements. Both were already installed
+  through Guzzle.
+
+### Changed
+
+- `ApiClient`'s constructor takes `ApiRequestSenderInterface`, `JsonApiRequestSenderInterface` and
+  `XmlApiRequestSenderInterface` instead of an optional `ApiClientContainerFactoryInterface`.
+  `new ApiClient()` no longer works: use `(new ApiClientFactory(new ClientOptions()))->create()`.
+  The getters no longer declare the container exceptions.
+- `ApiRequestSender` takes a `Psr\Http\Message\RequestFactoryInterface` and a `StreamFactoryInterface`
+  as its fourth and fifth constructor arguments, and builds requests through them instead of
+  constructing a Guzzle `Request`. The container factory passes Guzzle's `HttpFactory` for both.
+- `JsonApiRequestSender` sends every verb through one private path. Behaviour is unchanged.
+
 ## [2.0.0] - 2026-10-01
 
 A major version because `ApiRequestSender` and `ApiClientContainerFactory` take new constructor
