@@ -13,6 +13,8 @@ use ChristianBrown\ApiClient\Multipart\MultipartPartInterface;
 use ChristianBrown\ApiClient\Transformer\ArrayToJsonTransformerInterface;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 
+use Closure;
+
 use function array_merge;
 
 final class JsonApiRequestSender implements JsonApiRequestSenderInterface
@@ -43,9 +45,7 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function delete(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = []): array
     {
-        $contents = $this->apiRequestSender->delete($requestUrl, $requestQueryStrings, $requestHeaders);
-
-        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_DELETE, $requestUrl, $requestQueryStrings));
+        return $this->respond(ApiRequestSenderInterface::METHOD_DELETE, $requestUrl, $requestQueryStrings, fn (): string => $this->apiRequestSender->delete($requestUrl, $requestQueryStrings, $requestHeaders));
     }
 
     /**
@@ -63,9 +63,7 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function get(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = []): array
     {
-        $contents = $this->apiRequestSender->get($requestUrl, $requestQueryStrings, $requestHeaders);
-
-        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_GET, $requestUrl, $requestQueryStrings));
+        return $this->respond(ApiRequestSenderInterface::METHOD_GET, $requestUrl, $requestQueryStrings, fn (): string => $this->apiRequestSender->get($requestUrl, $requestQueryStrings, $requestHeaders));
     }
 
     /**
@@ -84,10 +82,12 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function patch(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], ?array $requestBodyArray = null): array
     {
-        $context = new RequestContext(ApiRequestSenderInterface::METHOD_PATCH, $requestUrl, $requestQueryStrings);
-        $contents = $this->apiRequestSender->patch($requestUrl, $requestQueryStrings, self::toJsonRequestHeaders($requestHeaders), $this->toJsonRequestBody($requestBodyArray, $context));
-
-        return $this->responseTransformer->transform($contents, $context);
+        return $this->respond(
+            ApiRequestSenderInterface::METHOD_PATCH,
+            $requestUrl,
+            $requestQueryStrings,
+            fn (RequestContextInterface $context): string => $this->apiRequestSender->patch($requestUrl, $requestQueryStrings, self::toJsonRequestHeaders($requestHeaders), $this->toJsonRequestBody($requestBodyArray, $context)),
+        );
     }
 
     /**
@@ -106,9 +106,7 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function patchForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): array
     {
-        $contents = $this->apiRequestSender->patchForm($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData);
-
-        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_PATCH, $requestUrl, $requestQueryStrings));
+        return $this->respond(ApiRequestSenderInterface::METHOD_PATCH, $requestUrl, $requestQueryStrings, fn (): string => $this->apiRequestSender->patchForm($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData));
     }
 
     /**
@@ -127,9 +125,7 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function patchMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): array
     {
-        $contents = $this->apiRequestSender->patchMultipart($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts);
-
-        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_PATCH, $requestUrl, $requestQueryStrings));
+        return $this->respond(ApiRequestSenderInterface::METHOD_PATCH, $requestUrl, $requestQueryStrings, fn (): string => $this->apiRequestSender->patchMultipart($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts));
     }
 
     /**
@@ -148,10 +144,12 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function post(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], ?array $requestBodyArray = null): array
     {
-        $context = new RequestContext(ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings);
-        $contents = $this->apiRequestSender->post($requestUrl, $requestQueryStrings, self::toJsonRequestHeaders($requestHeaders), $this->toJsonRequestBody($requestBodyArray, $context));
-
-        return $this->responseTransformer->transform($contents, $context);
+        return $this->respond(
+            ApiRequestSenderInterface::METHOD_POST,
+            $requestUrl,
+            $requestQueryStrings,
+            fn (RequestContextInterface $context): string => $this->apiRequestSender->post($requestUrl, $requestQueryStrings, self::toJsonRequestHeaders($requestHeaders), $this->toJsonRequestBody($requestBodyArray, $context)),
+        );
     }
 
     /**
@@ -170,9 +168,7 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function postForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): array
     {
-        $contents = $this->apiRequestSender->postForm($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData);
-
-        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings));
+        return $this->respond(ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings, fn (): string => $this->apiRequestSender->postForm($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData));
     }
 
     /**
@@ -191,9 +187,7 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function postMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): array
     {
-        $contents = $this->apiRequestSender->postMultipart($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts);
-
-        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings));
+        return $this->respond(ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings, fn (): string => $this->apiRequestSender->postMultipart($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts));
     }
 
     /**
@@ -212,10 +206,12 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function put(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], ?array $requestBodyArray = null): array
     {
-        $context = new RequestContext(ApiRequestSenderInterface::METHOD_PUT, $requestUrl, $requestQueryStrings);
-        $contents = $this->apiRequestSender->put($requestUrl, $requestQueryStrings, self::toJsonRequestHeaders($requestHeaders), $this->toJsonRequestBody($requestBodyArray, $context));
-
-        return $this->responseTransformer->transform($contents, $context);
+        return $this->respond(
+            ApiRequestSenderInterface::METHOD_PUT,
+            $requestUrl,
+            $requestQueryStrings,
+            fn (RequestContextInterface $context): string => $this->apiRequestSender->put($requestUrl, $requestQueryStrings, self::toJsonRequestHeaders($requestHeaders), $this->toJsonRequestBody($requestBodyArray, $context)),
+        );
     }
 
     /**
@@ -234,9 +230,7 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function putForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): array
     {
-        $contents = $this->apiRequestSender->putForm($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData);
-
-        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_PUT, $requestUrl, $requestQueryStrings));
+        return $this->respond(ApiRequestSenderInterface::METHOD_PUT, $requestUrl, $requestQueryStrings, fn (): string => $this->apiRequestSender->putForm($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData));
     }
 
     /**
@@ -255,9 +249,27 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
      */
     public function putMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): array
     {
-        $contents = $this->apiRequestSender->putMultipart($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts);
+        return $this->respond(ApiRequestSenderInterface::METHOD_PUT, $requestUrl, $requestQueryStrings, fn (): string => $this->apiRequestSender->putMultipart($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts));
+    }
 
-        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_PUT, $requestUrl, $requestQueryStrings));
+    /**
+     * The one path every verb goes through: builds the request context, sends the request through the
+     * closure, and decodes the response against that context.
+     *
+     * @param string                                   $method              The HTTP method used for the request
+     * @param string                                   $requestUrl          The request URL
+     * @param array<string, string>                    $requestQueryStrings
+     * @param Closure(RequestContextInterface): string $send                Sends the request and returns the raw response body
+     *
+     * @throws ParseJsonExceptionInterface
+     *
+     * @return array<array-key, mixed>
+     */
+    private function respond(string $method, string $requestUrl, array $requestQueryStrings, Closure $send): array
+    {
+        $context = new RequestContext($method, $requestUrl, $requestQueryStrings);
+
+        return $this->responseTransformer->transform($send($context), $context);
     }
 
     /**
