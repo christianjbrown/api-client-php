@@ -26,9 +26,10 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 
 use function array_filter;
+use function array_keys;
 use function array_merge;
+use function array_reduce;
 use function http_build_query;
-use function is_string;
 use function sprintf;
 use function str_contains;
 use function strcasecmp;
@@ -242,14 +243,8 @@ final class ApiRequestSender implements ApiRequestSenderInterface
     private function createRequest(string $method, string $url, array $requestHeaders, null|StreamInterface|string $requestBody): RequestInterface
     {
         $request = $this->requestFactory->createRequest($method, $url);
-        foreach ($requestHeaders as $name => $value) {
-            $request = $request->withHeader((string) $name, $value);
-        }
-        if (is_string($requestBody)) {
-            $requestBody = $this->streamFactory->createStream($requestBody);
-        }
 
-        return $requestBody instanceof StreamInterface ? $request->withBody($requestBody) : $request;
+        return $this->withBody(self::withHeaders($request, $requestHeaders), $requestBody);
     }
 
     /**
@@ -346,6 +341,29 @@ final class ApiRequestSender implements ApiRequestSenderInterface
         $contents = $requestBody->getContents();
 
         return $contents;
+    }
+
+    /**
+     * @param RequestInterface $request The request to give a body
+     */
+    private function withBody(RequestInterface $request, null|StreamInterface|string $requestBody): RequestInterface
+    {
+        $stream = $requestBody instanceof StreamInterface ? $requestBody : $this->streamFactory->createStream((string) $requestBody);
+
+        return $request->withBody($stream);
+    }
+
+    /**
+     * @param RequestInterface      $request        The request to add the headers to
+     * @param array<string, string> $requestHeaders
+     */
+    private static function withHeaders(RequestInterface $request, array $requestHeaders): RequestInterface
+    {
+        return array_reduce(
+            array_keys($requestHeaders),
+            static fn (RequestInterface $carry, int|string $name): RequestInterface => $carry->withHeader((string) $name, $requestHeaders[$name]),
+            $request,
+        );
     }
 
     /**

@@ -261,6 +261,35 @@ final class ApiRequestSenderTest extends TestCase
     }
 
     /**
+     * @param array<string, string> $headers
+     */
+    #[TestWith([[], null, ''])]
+    #[TestWith([[], 'test-body', 'test-body'])]
+    #[TestWith([['X-Test' => 'test-header'], null, ''])]
+    #[TestWith([['X-Test' => 'test-header'], 'test-body', 'test-body'])]
+    #[TestWith([['X-Test' => 'test-header', 'X-Other' => 'other'], 'test-body', 'test-body'])]
+    public function testRequestIsBuiltFromHeadersAndBody(array $headers, ?string $body, string $expectedBody): void
+    {
+        $sentRequest = null;
+        $guzzle = self::createStub(ClientInterface::class);
+        $guzzle->method('send')
+            ->willReturnCallback(
+                static function (RequestInterface $request) use (&$sentRequest): ResponseInterface {
+                    $sentRequest = $request;
+
+                    return new Response(200, [], 'test-response');
+                }
+            );
+        $requestSender = new ApiRequestSender($guzzle, self::createStub(GuzzleExceptionRedactorInterface::class), self::createStub(MultipartBodyFactoryInterface::class), new HttpFactory(), new HttpFactory());
+
+        $requestSender->post('test-url', [], $headers, $body);
+
+        self::assertInstanceOf(RequestInterface::class, $sentRequest);
+        self::assertSame($expectedBody, (string) $sentRequest->getBody());
+        self::assertSame(isset($headers['X-Test']) ? ['test-header'] : [], $sentRequest->getHeader('X-Test'));
+    }
+
+    /**
      * @param string                            $function              The sender method to invoke
      * @param array<int, mixed>                 $functionArgs
      * @param string                            $expectedRequestMethod The expected HTTP request method
