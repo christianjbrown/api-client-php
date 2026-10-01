@@ -21,16 +21,16 @@ final class ApiClientFactory implements ApiClientFactoryInterface
         $container = (new ApiClientContainerFactory($this->clientOptions))->create();
 
         /**
- * @var ApiRequestSenderInterface $apiRequestSender
-*/
+         * @var ApiRequestSenderInterface $apiRequestSender
+         */
         $apiRequestSender = $container->get(ApiClientInterface::SERVICE_API_REQUEST_SENDER);
         /**
- * @var JsonApiRequestSenderInterface $jsonApiRequestSender
-*/
+         * @var JsonApiRequestSenderInterface $jsonApiRequestSender
+         */
         $jsonApiRequestSender = $container->get(ApiClientInterface::SERVICE_JSON_API_REQUEST_SENDER);
         /**
- * @var XmlApiRequestSenderInterface $xmlApiRequestSender
-*/
+         * @var XmlApiRequestSenderInterface $xmlApiRequestSender
+         */
         $xmlApiRequestSender = $container->get(ApiClientInterface::SERVICE_XML_API_REQUEST_SENDER);
 
         return new ApiClient($apiRequestSender, $jsonApiRequestSender, $xmlApiRequestSender);
