@@ -183,7 +183,7 @@ final class ApiRequestSenderTest extends TestCase
                 }
             );
         $exceptionRedactor = new GuzzleExceptionRedactor(new RequestRedactor(RequestRedactorInterface::SENSITIVE_HEADERS, new HttpFactory()));
-        $requestSender = new ApiRequestSender($guzzle, $exceptionRedactor, self::createStub(MultipartBodyFactoryInterface::class));
+        $requestSender = new ApiRequestSender($guzzle, $exceptionRedactor, self::createStub(MultipartBodyFactoryInterface::class), new HttpFactory(), new HttpFactory());
         $connectExceptionThrown = false;
 
         try {
@@ -254,7 +254,7 @@ final class ApiRequestSenderTest extends TestCase
                 }
             );
 
-        $requestSender = new ApiRequestSender($guzzle, self::createStub(GuzzleExceptionRedactorInterface::class), $multipartBodyFactory);
+        $requestSender = new ApiRequestSender($guzzle, self::createStub(GuzzleExceptionRedactorInterface::class), $multipartBodyFactory, new HttpFactory(), new HttpFactory());
         $actual = $requestSender->{$function}('test-url', ['test-query-string-key-1' => 'test-query-string-value-1'], ['test-header-1' => 'test-header-value-1', 'content-type' => 'text/plain'], $parts);
 
         self::assertSame('test-response', $actual);
@@ -311,7 +311,7 @@ final class ApiRequestSenderTest extends TestCase
                 }
             );
 
-        $requestSender = new ApiRequestSender($guzzle, self::createStub(GuzzleExceptionRedactorInterface::class), self::createStub(MultipartBodyFactoryInterface::class));
+        $requestSender = new ApiRequestSender($guzzle, self::createStub(GuzzleExceptionRedactorInterface::class), self::createStub(MultipartBodyFactoryInterface::class), new HttpFactory(), new HttpFactory());
         $actual = $requestSender->{$function}(...$functionArgs);
         self::assertSame('test-response', $actual);
     }
@@ -455,7 +455,7 @@ final class ApiRequestSenderTest extends TestCase
                 }
             );
 
-        $requestSender = new ApiRequestSender($guzzle, $exceptionRedactor, self::createStub(MultipartBodyFactoryInterface::class));
+        $requestSender = new ApiRequestSender($guzzle, $exceptionRedactor, self::createStub(MultipartBodyFactoryInterface::class), new HttpFactory(), new HttpFactory());
 
         return $requestSender;
     }

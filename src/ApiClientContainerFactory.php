@@ -68,6 +68,8 @@ final class ApiClientContainerFactory implements ApiClientContainerFactoryInterf
                     $container->getDefinition(ApiClientInterface::SERVICE_GUZZLE_CLIENT),
                     $container->getDefinition(ApiClientInterface::SERVICE_REDACTOR_GUZZLE_EXCEPTION),
                     $container->getDefinition(ApiClientInterface::SERVICE_MULTIPART_BODY_FACTORY),
+                    $container->getDefinition(ApiClientInterface::SERVICE_GUZZLE_HTTP_FACTORY),
+                    $container->getDefinition(ApiClientInterface::SERVICE_GUZZLE_HTTP_FACTORY),
                 ]
             );
 
