@@ -6,6 +6,12 @@ All notable changes to this package are recorded here. The format follows
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-01
+
+A major version because `ApiRequestSender` and `ApiClientContainerFactory` take new constructor
+arguments and the sender interfaces gain methods. Code that only uses `new ApiClient()` and its
+getters needs no changes.
+
 ### Added
 
 - Request timeouts. The Guzzle client used to be built with none, so a request to an API that stopped
@@ -62,5 +68,6 @@ First stable release.
 - `RequestContext`, a value object carrying the method, URL and query string, exposed on parse
   exceptions so a failure reports where it happened.
 
-[Unreleased]: https://github.com/christianjbrown/api-client-php/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/christianjbrown/api-client-php/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/christianjbrown/api-client-php/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/christianjbrown/api-client-php/releases/tag/v1.0.0
