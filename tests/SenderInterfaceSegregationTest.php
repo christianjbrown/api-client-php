@@ -16,9 +16,11 @@ use ChristianBrown\ApiClient\JsonWriteApiRequestSenderInterface;
 use ChristianBrown\ApiClient\MultipartApiRequestSenderInterface;
 use ChristianBrown\ApiClient\ReadApiRequestSenderInterface;
 use ChristianBrown\ApiClient\WriteApiRequestSenderInterface;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
+#[CoversNothing]
 final class SenderInterfaceSegregationTest extends TestCase
 {
     public function testCombinedInterfacesCompose(): void
