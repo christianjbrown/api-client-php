@@ -16,6 +16,9 @@ All notable changes to this package are recorded here. The format follows
   connect, such as a connection dropped mid-response or a rejected TLS certificate. Guzzle reports
   these as a plain `RequestException`, which used to escape unwrapped, bypassing both
   `ExceptionInterface` and the redaction.
+- `multipart/form-data` bodies: `postMultipart`, `putMultipart` and `patchMultipart` on the raw and
+  JSON senders take a list of `MultipartPart`s, each a plain field or, with a filename, a file. The
+  `Content-Type` and its boundary are set for you, replacing any you pass.
 
 ### Changed
 
@@ -25,7 +28,8 @@ All notable changes to this package are recorded here. The format follows
 - The request stored on exceptions also loses the `apikey`, `X-Api-Key` and `Cookie` headers, and its
   body is emptied, since a form body can carry a refresh token or client secret.
 - `ApiRequestSender` takes a `GuzzleExceptionRedactorInterface` as a second constructor argument.
-  `ApiClient` wires it for you. Code that builds `ApiRequestSender` itself has to pass one.
+  `ApiClient` wires it for you. Code that builds `ApiRequestSender` itself has to pass one, and now a
+  `MultipartBodyFactoryInterface` as a third.
 - `ApiClientContainerFactory` takes a `ClientOptionsInterface` as a constructor argument. `new ApiClient()`
   passes the defaults for you.
 

@@ -10,14 +10,17 @@ use ChristianBrown\ApiClient\Exception\Request\ConnectExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsExceptionInterface;
 use ChristianBrown\ApiClient\JsonApiRequestSender;
+use ChristianBrown\ApiClient\Multipart\MultipartPart;
 use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\Transformer\ArrayToJsonTransformerInterface;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\MockObject\Exception;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(JsonApiRequestSender::class)]
+#[CoversClass(MultipartPart::class)]
 #[CoversClass(RequestContext::class)]
 final class JsonApiRequestSenderTest extends TestCase
 {
@@ -87,6 +90,51 @@ final class JsonApiRequestSenderTest extends TestCase
         $requestTransformer = self::createStub(ArrayToJsonTransformerInterface::class);
         $jsonApiRequestSender = new JsonApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
         $actual = $jsonApiRequestSender->get('test-url', ['test-query-string' => 'test-value'], ['test-header' => 'test-value']);
+
+        self::assertSame(['test-response-array'], $actual);
+    }
+
+    /**
+     * @param non-empty-string $function The sender method to invoke
+     * @param string           $method   The HTTP method the parse context should carry
+     *
+     * @throws Exception
+     * @throws ParseJsonExceptionInterface
+     * @throws ConnectExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    #[TestWith(['patchMultipart', ApiRequestSenderInterface::METHOD_PATCH])]
+    #[TestWith(['postMultipart', ApiRequestSenderInterface::METHOD_POST])]
+    #[TestWith(['putMultipart', ApiRequestSenderInterface::METHOD_PUT])]
+    public function testMultipart(string $function, string $method): void
+    {
+        $parts = [new MultipartPart('test-field', 'test-value')];
+
+        $apiRequestSender = self::createMock(ApiRequestSenderInterface::class);
+        $apiRequestSender->expects(self::once())
+            ->method($function)
+            ->with(
+                'test-url',
+                ['test-query-string' => 'test-value'],
+                ['test-header' => 'test-value'],
+                $parts
+            )
+            ->willReturn('test-response');
+
+        $responseTransformer = self::createMock(JsonToArrayTransformerInterface::class);
+        $responseTransformer->expects(self::once())
+            ->method('transform')
+            ->with(
+                'test-response',
+                self::equalTo(new RequestContext($method, 'test-url', ['test-query-string' => 'test-value'])),
+            )
+            ->willReturn(['test-response-array']);
+
+        $requestTransformer = self::createStub(ArrayToJsonTransformerInterface::class);
+
+        $jsonApiRequestSender = new JsonApiRequestSender($apiRequestSender, $responseTransformer, $requestTransformer);
+        $actual = $jsonApiRequestSender->{$function}('test-url', ['test-query-string' => 'test-value'], ['test-header' => 'test-value'], $parts);
 
         self::assertSame(['test-response-array'], $actual);
     }

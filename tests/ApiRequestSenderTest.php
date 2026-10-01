@@ -16,6 +16,8 @@ use ChristianBrown\ApiClient\Exception\Response\BadResponseException;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsException;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsExceptionInterface;
+use ChristianBrown\ApiClient\Multipart\MultipartBodyFactoryInterface;
+use ChristianBrown\ApiClient\Multipart\MultipartPart;
 use ChristianBrown\ApiClient\Redactor\GuzzleExceptionRedactor;
 use ChristianBrown\ApiClient\Redactor\GuzzleExceptionRedactorInterface;
 use ChristianBrown\ApiClient\Redactor\RequestRedactor;
@@ -26,6 +28,7 @@ use GuzzleHttp\Exception\ConnectException as GuzzleConnectException;
 use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException as GuzzleTooManyRedirectsException;
 use GuzzleHttp\Psr7\HttpFactory;
+use GuzzleHttp\Psr7\MultipartStream;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -44,6 +47,7 @@ use Throwable;
 #[CoversClass(BadResponseException::class)]
 #[CoversClass(TooManyRedirectsException::class)]
 #[CoversClass(TransferException::class)]
+#[CoversClass(MultipartPart::class)]
 #[CoversClass(GuzzleExceptionRedactor::class)]
 #[CoversClass(RequestRedactor::class)]
 final class ApiRequestSenderTest extends TestCase
@@ -179,7 +183,7 @@ final class ApiRequestSenderTest extends TestCase
                 }
             );
         $exceptionRedactor = new GuzzleExceptionRedactor(new RequestRedactor(RequestRedactorInterface::SENSITIVE_HEADERS, new HttpFactory()));
-        $requestSender = new ApiRequestSender($guzzle, $exceptionRedactor);
+        $requestSender = new ApiRequestSender($guzzle, $exceptionRedactor, self::createStub(MultipartBodyFactoryInterface::class));
         $connectExceptionThrown = false;
 
         try {
@@ -202,6 +206,58 @@ final class ApiRequestSenderTest extends TestCase
         }
 
         self::assertTrue($connectExceptionThrown);
+    }
+
+    /**
+     * The parts go to the body factory, its stream becomes the request body, and the `Content-Type`
+     * carries the stream's boundary. A `Content-Type` the caller passed, in any case, is dropped
+     * because a different one would not match the boundary.
+     *
+     * @param string $function              The sender method to invoke
+     * @param string $expectedRequestMethod The expected HTTP request method
+     *
+     * @throws ConnectException
+     * @throws Exception
+     * @throws BadResponseException
+     * @throws TooManyRedirectsException
+     */
+    #[TestWith(['patchMultipart', ApiRequestSenderInterface::METHOD_PATCH])]
+    #[TestWith(['postMultipart', ApiRequestSenderInterface::METHOD_POST])]
+    #[TestWith(['putMultipart', ApiRequestSenderInterface::METHOD_PUT])]
+    public function testMultipart(string $function, string $expectedRequestMethod): void
+    {
+        $parts = [new MultipartPart('test-field', 'test-value'), new MultipartPart('test-file', 'test-file-contents', 'test-file.txt')];
+        $body = new MultipartStream([['name' => 'test-field', 'contents' => 'test-value']], 'test-boundary');
+
+        $multipartBodyFactory = self::createMock(MultipartBodyFactoryInterface::class);
+        $multipartBodyFactory->expects(self::once())
+            ->method('create')
+            ->with($parts)
+            ->willReturn($body);
+
+        $guzzle = self::createStub(ClientInterface::class);
+        $guzzle->method('send')
+            ->willReturnCallback(
+                static function (RequestInterface $request) use ($expectedRequestMethod, $body): ResponseInterface {
+                    self::assertSame($expectedRequestMethod, $request->getMethod());
+                    self::assertSame('test-url?test-query-string-key-1=test-query-string-value-1', $request->getUri()->__toString());
+                    self::assertSame(
+                        [
+                            'test-header-1' => ['test-header-value-1'],
+                            ApiRequestSenderInterface::HEADER_CONTENT_TYPE => [sprintf(ApiRequestSenderInterface::CONTENT_TYPE_MULTIPART_SPRINTF, 'test-boundary')],
+                        ],
+                        $request->getHeaders()
+                    );
+                    self::assertSame($body, $request->getBody());
+
+                    return new Response(200, [], 'test-response');
+                }
+            );
+
+        $requestSender = new ApiRequestSender($guzzle, self::createStub(GuzzleExceptionRedactorInterface::class), $multipartBodyFactory);
+        $actual = $requestSender->{$function}('test-url', ['test-query-string-key-1' => 'test-query-string-value-1'], ['test-header-1' => 'test-header-value-1', 'content-type' => 'text/plain'], $parts);
+
+        self::assertSame('test-response', $actual);
     }
 
     /**
@@ -255,7 +311,7 @@ final class ApiRequestSenderTest extends TestCase
                 }
             );
 
-        $requestSender = new ApiRequestSender($guzzle, self::createStub(GuzzleExceptionRedactorInterface::class));
+        $requestSender = new ApiRequestSender($guzzle, self::createStub(GuzzleExceptionRedactorInterface::class), self::createStub(MultipartBodyFactoryInterface::class));
         $actual = $requestSender->{$function}(...$functionArgs);
         self::assertSame('test-response', $actual);
     }
@@ -399,7 +455,7 @@ final class ApiRequestSenderTest extends TestCase
                 }
             );
 
-        $requestSender = new ApiRequestSender($guzzle, $exceptionRedactor);
+        $requestSender = new ApiRequestSender($guzzle, $exceptionRedactor, self::createStub(MultipartBodyFactoryInterface::class));
 
         return $requestSender;
     }

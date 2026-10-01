@@ -118,9 +118,22 @@ try {
 }
 ```
 
-An endpoint that answers `204 No Content` has no JSON body to decode, so reach for the raw
-`ApiRequestSenderInterface` (`$apiClient->getApiRequestSender()`) for those and ignore the empty
-string it returns.
+An endpoint that answers `204 No Content`, or any other empty body, comes back as an empty array.
+
+### Multipart uploads
+
+`postMultipart`, `putMultipart` and `patchMultipart` send a `multipart/form-data` body built from a list
+of `MultipartPart`s. A part with a filename is sent as a file; without one, it is a plain field. The
+`Content-Type` and its boundary are set for you, and replace any `Content-Type` you pass.
+
+```php
+use ChristianBrown\ApiClient\Multipart\MultipartPart;
+
+$data = $jsonApiRequestSender->postMultipart('url', [], [], [
+    new MultipartPart('description', 'Photo of the damage'),
+    new MultipartPart('file', file_get_contents('photo.png'), 'photo.png', ['Content-Type' => 'image/png']),
+]);
+```
 
 
 

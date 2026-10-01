@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ChristianBrown\ApiClient;
 
+use ChristianBrown\ApiClient\Multipart\MultipartBodyFactory;
 use ChristianBrown\ApiClient\Redactor\GuzzleExceptionRedactor;
 use ChristianBrown\ApiClient\Redactor\RequestRedactor;
 use ChristianBrown\ApiClient\Redactor\RequestRedactorInterface;
@@ -39,6 +40,7 @@ final class ApiClientContainerFactory implements ApiClientContainerFactoryInterf
                 ]
             );
         $container->register(ApiClientInterface::SERVICE_GUZZLE_HTTP_FACTORY, HttpFactory::class);
+        $container->register(ApiClientInterface::SERVICE_MULTIPART_BODY_FACTORY, MultipartBodyFactory::class);
 
         $container->register(ApiClientInterface::SERVICE_REDACTOR_REQUEST, RequestRedactor::class)
             ->setArguments(
@@ -65,6 +67,7 @@ final class ApiClientContainerFactory implements ApiClientContainerFactoryInterf
                 [
                     $container->getDefinition(ApiClientInterface::SERVICE_GUZZLE_CLIENT),
                     $container->getDefinition(ApiClientInterface::SERVICE_REDACTOR_GUZZLE_EXCEPTION),
+                    $container->getDefinition(ApiClientInterface::SERVICE_MULTIPART_BODY_FACTORY),
                 ]
             );
 
