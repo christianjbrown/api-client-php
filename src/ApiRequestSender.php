@@ -234,7 +234,10 @@ final class ApiRequestSender implements ApiRequestSenderInterface
     /**
      * Builds the PSR-7 request through the injected PSR-17 factories.
      *
-     * @param array<string, string> $requestHeaders
+     * @param string                      $method         The HTTP method used for the request
+     * @param string                      $url            The final request URL
+     * @param array<string, string>       $requestHeaders
+     * @param null|StreamInterface|string $requestBody    The raw request body
      */
     private function createRequest(string $method, string $url, array $requestHeaders, null|StreamInterface|string $requestBody): RequestInterface
     {
