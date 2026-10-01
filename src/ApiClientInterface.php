@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace ChristianBrown\ApiClient;
 
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
-
 interface ApiClientInterface
 {
     public const string SERVICE_API_REQUEST_SENDER = 'christianbrown.api_client.api_request_sender';
@@ -22,21 +19,9 @@ interface ApiClientInterface
     public const string SERVICE_TRANSFORMER_XML_DOC_TO_STRING = 'christianbrown.api_client.transformer.xml_doc_to_string_transformer';
     public const string SERVICE_XML_API_REQUEST_SENDER = 'christianbrown.api_client.xml_api_request_sender';
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
     public function getApiRequestSender(): ApiRequestSenderInterface;
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
     public function getJsonApiRequestSender(): JsonApiRequestSenderInterface;
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
     public function getXmlApiRequestSender(): XmlApiRequestSenderInterface;
 }
