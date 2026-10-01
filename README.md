@@ -35,9 +35,10 @@ composer require christianjbrown/api-client
 
 
 ```php
-use ChristianBrown\ApiClient\ApiClient;
+use ChristianBrown\ApiClient\ApiClientFactory;
+use ChristianBrown\ApiClient\ClientOptions;
 
-$apiClient = new ApiClient();
+$apiClient = (new ApiClientFactory(new ClientOptions()))->create();
 $jsonApiRequestSender = $apiClient->getJsonApiRequestSender();
 
 // or, for XML use
@@ -50,11 +51,10 @@ A request gives up after 30 seconds, or after 10 seconds if it cannot connect. T
 your own `ClientOptions`. Use `0` to wait indefinitely.
 
 ```php
-use ChristianBrown\ApiClient\ApiClient;
-use ChristianBrown\ApiClient\ApiClientContainerFactory;
+use ChristianBrown\ApiClient\ApiClientFactory;
 use ChristianBrown\ApiClient\ClientOptions;
 
-$apiClient = new ApiClient(new ApiClientContainerFactory(new ClientOptions(timeout: 60.0, connectTimeout: 5.0)));
+$apiClient = (new ApiClientFactory(new ClientOptions(timeout: 60.0, connectTimeout: 5.0)))->create();
 ```
 
 A timeout surfaces as a `ConnectException`, because that is how Guzzle reports it.
@@ -136,6 +136,34 @@ $data = $jsonApiRequestSender->postMultipart('url', [], [], [
 ```
 
 
+
+## :arrow_up: Upgrading to 3.0
+
+`ApiClient` no longer builds anything itself. Its constructor takes the three senders, and
+`ApiClientFactory` builds the default wiring.
+
+```php
+// before
+$apiClient = new ApiClient();
+$apiClient = new ApiClient(new ApiClientContainerFactory(new ClientOptions(timeout: 60.0)));
+
+// after
+$apiClient = (new ApiClientFactory(new ClientOptions()))->create();
+$apiClient = (new ApiClientFactory(new ClientOptions(timeout: 60.0)))->create();
+```
+
+`ApiRequestSender` takes a PSR-17 `RequestFactoryInterface` and `StreamFactoryInterface` as its fourth
+and fifth constructor arguments (Guzzle's `HttpFactory` implements both). Code that builds it by hand
+passes them:
+
+```php
+new ApiRequestSender($guzzle, $exceptionRedactor, $multipartBodyFactory, new HttpFactory(), new HttpFactory());
+```
+
+`ApiRequestSenderInterface` and `JsonApiRequestSenderInterface` are now composed of narrower
+interfaces: `Read`, `Write`, `Form` and `Multipart`, with a `Json` prefix on the JSON ones, for example
+`JsonReadApiRequestSenderInterface`. Type-hint the narrow one when a class only needs `get` and
+`delete`, or only the JSON `post`.
 
 ## :rotating_light: Error handling
 

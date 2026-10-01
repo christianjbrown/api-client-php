@@ -20,11 +20,15 @@ use GuzzleHttp\Exception\BadResponseException as GuzzleBadResponseException;
 use GuzzleHttp\Exception\ConnectException as GuzzleConnectException;
 use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException as GuzzleTooManyRedirectsException;
-use GuzzleHttp\Psr7\Request;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 
 use function array_filter;
+use function array_keys;
 use function array_merge;
+use function array_reduce;
 use function http_build_query;
 use function sprintf;
 use function str_contains;
@@ -37,12 +41,21 @@ final class ApiRequestSender implements ApiRequestSenderInterface
     private GuzzleExceptionRedactorInterface $exceptionRedactor;
     private ClientInterface $guzzle;
     private MultipartBodyFactoryInterface $multipartBodyFactory;
+    private RequestFactoryInterface $requestFactory;
+    private StreamFactoryInterface $streamFactory;
 
-    public function __construct(ClientInterface $guzzle, GuzzleExceptionRedactorInterface $exceptionRedactor, MultipartBodyFactoryInterface $multipartBodyFactory)
-    {
+    public function __construct(
+        ClientInterface $guzzle,
+        GuzzleExceptionRedactorInterface $exceptionRedactor,
+        MultipartBodyFactoryInterface $multipartBodyFactory,
+        RequestFactoryInterface $requestFactory,
+        StreamFactoryInterface $streamFactory,
+    ) {
         $this->guzzle = $guzzle;
         $this->exceptionRedactor = $exceptionRedactor;
         $this->multipartBodyFactory = $multipartBodyFactory;
+        $this->requestFactory = $requestFactory;
+        $this->streamFactory = $streamFactory;
     }
 
     /**
@@ -220,6 +233,21 @@ final class ApiRequestSender implements ApiRequestSenderInterface
     }
 
     /**
+     * Builds the PSR-7 request through the injected PSR-17 factories.
+     *
+     * @param string                      $method         The HTTP method used for the request
+     * @param string                      $url            The final request URL
+     * @param array<string, string>       $requestHeaders
+     * @param null|StreamInterface|string $requestBody    The raw request body
+     */
+    private function createRequest(string $method, string $url, array $requestHeaders, null|StreamInterface|string $requestBody): RequestInterface
+    {
+        $request = $this->requestFactory->createRequest($method, $url);
+
+        return $this->withBody(self::withHeaders($request, $requestHeaders), $requestBody);
+    }
+
+    /**
      * Renders `$requestBodyFormData` as an `application/x-www-form-urlencoded` body and sends it with
      * `$method`, defaulting the content type header while letting a caller-supplied one win.
      *
@@ -287,7 +315,7 @@ final class ApiRequestSender implements ApiRequestSenderInterface
             $separator = str_contains($requestUrl, '?') ? '&' : '?';
             $finalUrl = sprintf('%s%s%s', $requestUrl, $separator, $requestQueryStringsFlat);
         }
-        $request = new Request($method, $finalUrl, $requestHeaders, $requestBody);
+        $request = $this->createRequest($method, $finalUrl, $requestHeaders, $requestBody);
 
         try {
             $response = $this->guzzle->send($request);
@@ -313,6 +341,29 @@ final class ApiRequestSender implements ApiRequestSenderInterface
         $contents = $requestBody->getContents();
 
         return $contents;
+    }
+
+    /**
+     * @param RequestInterface $request The request to give a body
+     */
+    private function withBody(RequestInterface $request, null|StreamInterface|string $requestBody): RequestInterface
+    {
+        $stream = $requestBody instanceof StreamInterface ? $requestBody : $this->streamFactory->createStream((string) $requestBody);
+
+        return $request->withBody($stream);
+    }
+
+    /**
+     * @param RequestInterface      $request        The request to add the headers to
+     * @param array<string, string> $requestHeaders
+     */
+    private static function withHeaders(RequestInterface $request, array $requestHeaders): RequestInterface
+    {
+        return array_reduce(
+            array_keys($requestHeaders),
+            static fn (RequestInterface $carry, int|string $name): RequestInterface => $carry->withHeader((string) $name, $requestHeaders[$name]),
+            $request,
+        );
     }
 
     /**
