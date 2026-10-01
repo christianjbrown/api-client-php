@@ -9,6 +9,7 @@ use ChristianBrown\ApiClient\Exception\Request\ConnectExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Request\TransferExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsExceptionInterface;
+use ChristianBrown\ApiClient\Multipart\MultipartPartInterface;
 use ChristianBrown\ApiClient\Transformer\ArrayToJsonTransformerInterface;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 
@@ -111,6 +112,27 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
     }
 
     /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     *
+     * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
+     * @throws ParseJsonExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     *
+     * @return array<array-key, mixed>
+     */
+    public function patchMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): array
+    {
+        $contents = $this->apiRequestSender->patchMultipart($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts);
+
+        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_PATCH, $requestUrl, $requestQueryStrings));
+    }
+
+    /**
      * @param string                       $requestUrl          The request URL
      * @param array<string, string>        $requestQueryStrings
      * @param array<string, string>        $requestHeaders
@@ -154,6 +176,27 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
     }
 
     /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     *
+     * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
+     * @throws ParseJsonExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     *
+     * @return array<array-key, mixed>
+     */
+    public function postMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): array
+    {
+        $contents = $this->apiRequestSender->postMultipart($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts);
+
+        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_POST, $requestUrl, $requestQueryStrings));
+    }
+
+    /**
      * @param string                       $requestUrl          The request URL
      * @param array<string, string>        $requestQueryStrings
      * @param array<string, string>        $requestHeaders
@@ -192,6 +235,27 @@ final class JsonApiRequestSender implements JsonApiRequestSenderInterface
     public function putForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): array
     {
         $contents = $this->apiRequestSender->putForm($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData);
+
+        return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_PUT, $requestUrl, $requestQueryStrings));
+    }
+
+    /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     *
+     * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
+     * @throws ParseJsonExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     *
+     * @return array<array-key, mixed>
+     */
+    public function putMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): array
+    {
+        $contents = $this->apiRequestSender->putMultipart($requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts);
 
         return $this->responseTransformer->transform($contents, new RequestContext(ApiRequestSenderInterface::METHOD_PUT, $requestUrl, $requestQueryStrings));
     }

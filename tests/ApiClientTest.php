@@ -10,6 +10,7 @@ use ChristianBrown\ApiClient\ApiClientContainerFactoryInterface;
 use ChristianBrown\ApiClient\ApiRequestSender;
 use ChristianBrown\ApiClient\ClientOptions;
 use ChristianBrown\ApiClient\JsonApiRequestSender;
+use ChristianBrown\ApiClient\Multipart\MultipartBodyFactory;
 use ChristianBrown\ApiClient\Redactor\GuzzleExceptionRedactor;
 use ChristianBrown\ApiClient\Redactor\RequestRedactor;
 use ChristianBrown\ApiClient\Transformer\ArrayToJsonTransformer;
@@ -26,6 +27,7 @@ use Psr\Container\NotFoundExceptionInterface;
 #[CoversClass(ApiClientContainerFactory::class)]
 #[CoversClass(ApiRequestSender::class)]
 #[CoversClass(ArrayToJsonTransformer::class)]
+#[CoversClass(MultipartBodyFactory::class)]
 #[CoversClass(ClientOptions::class)]
 #[CoversClass(GuzzleExceptionRedactor::class)]
 #[CoversClass(JsonApiRequestSender::class)]

@@ -64,7 +64,10 @@ Everything lives under the `ChristianBrown\ApiClient\` namespace (`src/`), mirro
   build a PSR-7 `Request`, send it, translate Guzzle exceptions into this library's own types, and
   return the raw response body as a `string`. All of them funnel through the private `sendRequest()`;
   the form variants go via `sendFormRequest()`, which renders the body and defaults the
-  `Content-Type` header while letting a caller-supplied one win.
+  `Content-Type` header while letting a caller-supplied one win. The multipart variants
+  (`postMultipart`/`putMultipart`/`patchMultipart`) go via `sendMultipartRequest()`, which has the
+  injected `Multipart\MultipartBodyFactoryInterface` encode a list of `MultipartPart`s and always sets
+  the `Content-Type` itself, dropping a caller's in any case, because it must carry the boundary.
 - **`Redactor/`** - keeps credentials out of thrown exceptions. `RequestRedactor` strips the headers in
   `RequestRedactorInterface::SENSITIVE_HEADERS` and empties the body. `GuzzleExceptionRedactor`
   rebuilds the caught Guzzle exception around that redacted request, because the original holds the

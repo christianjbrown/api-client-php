@@ -12,6 +12,8 @@ use ChristianBrown\ApiClient\Exception\Response\BadResponseException;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsException;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsExceptionInterface;
+use ChristianBrown\ApiClient\Multipart\MultipartBodyFactoryInterface;
+use ChristianBrown\ApiClient\Multipart\MultipartPartInterface;
 use ChristianBrown\ApiClient\Redactor\GuzzleExceptionRedactorInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\BadResponseException as GuzzleBadResponseException;
@@ -19,21 +21,28 @@ use GuzzleHttp\Exception\ConnectException as GuzzleConnectException;
 use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 use GuzzleHttp\Exception\TooManyRedirectsException as GuzzleTooManyRedirectsException;
 use GuzzleHttp\Psr7\Request;
+use Psr\Http\Message\StreamInterface;
 
+use function array_filter;
 use function array_merge;
 use function http_build_query;
 use function sprintf;
 use function str_contains;
+use function strcasecmp;
+
+use const ARRAY_FILTER_USE_KEY;
 
 final class ApiRequestSender implements ApiRequestSenderInterface
 {
     private GuzzleExceptionRedactorInterface $exceptionRedactor;
     private ClientInterface $guzzle;
+    private MultipartBodyFactoryInterface $multipartBodyFactory;
 
-    public function __construct(ClientInterface $guzzle, GuzzleExceptionRedactorInterface $exceptionRedactor)
+    public function __construct(ClientInterface $guzzle, GuzzleExceptionRedactorInterface $exceptionRedactor, MultipartBodyFactoryInterface $multipartBodyFactory)
     {
         $this->guzzle = $guzzle;
         $this->exceptionRedactor = $exceptionRedactor;
+        $this->multipartBodyFactory = $multipartBodyFactory;
     }
 
     /**
@@ -99,6 +108,22 @@ final class ApiRequestSender implements ApiRequestSenderInterface
     }
 
     /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     *
+     * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function patchMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): string
+    {
+        return $this->sendMultipartRequest(self::METHOD_PATCH, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts);
+    }
+
+    /**
      * @param string                $requestUrl          The request URL
      * @param array<string, string> $requestQueryStrings
      * @param array<string, string> $requestHeaders
@@ -128,6 +153,22 @@ final class ApiRequestSender implements ApiRequestSenderInterface
     public function postForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string
     {
         return $this->sendFormRequest(self::METHOD_POST, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyFormData);
+    }
+
+    /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     *
+     * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function postMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): string
+    {
+        return $this->sendMultipartRequest(self::METHOD_POST, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts);
     }
 
     /**
@@ -163,6 +204,22 @@ final class ApiRequestSender implements ApiRequestSenderInterface
     }
 
     /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     *
+     * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function putMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): string
+    {
+        return $this->sendMultipartRequest(self::METHOD_PUT, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBodyParts);
+    }
+
+    /**
      * Renders `$requestBodyFormData` as an `application/x-www-form-urlencoded` body and sends it with
      * `$method`, defaulting the content type header while letting a caller-supplied one win.
      *
@@ -186,18 +243,41 @@ final class ApiRequestSender implements ApiRequestSenderInterface
     }
 
     /**
-     * @param string                $method              The HTTP method used for the request
-     * @param string                $requestUrl          The request URL
-     * @param array<string, string> $requestQueryStrings
-     * @param array<string, string> $requestHeaders
-     * @param null|string           $requestBody         The raw request body
+     * Encodes `$requestBodyParts` as a `multipart/form-data` body and sends it with `$method`. The
+     * `Content-Type` has to carry the body's boundary, so it always wins over one the caller passed.
+     *
+     * @param string                             $method              The HTTP method used for the request
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
      *
      * @throws ConnectExceptionInterface
      * @throws TransferExceptionInterface
      * @throws BadResponseExceptionInterface
      * @throws TooManyRedirectsExceptionInterface
      */
-    private function sendRequest(string $method, string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], ?string $requestBody = null): string
+    private function sendMultipartRequest(string $method, string $requestUrl, array $requestQueryStrings, array $requestHeaders, array $requestBodyParts): string
+    {
+        $requestBody = $this->multipartBodyFactory->create($requestBodyParts);
+        $requestHeaders = array_merge(self::withoutContentType($requestHeaders), [self::HEADER_CONTENT_TYPE => sprintf(self::CONTENT_TYPE_MULTIPART_SPRINTF, $requestBody->getBoundary())]);
+
+        return $this->sendRequest($method, $requestUrl, $requestQueryStrings, $requestHeaders, $requestBody);
+    }
+
+    /**
+     * @param string                      $method              The HTTP method used for the request
+     * @param string                      $requestUrl          The request URL
+     * @param array<string, string>       $requestQueryStrings
+     * @param array<string, string>       $requestHeaders
+     * @param null|StreamInterface|string $requestBody         The raw request body
+     *
+     * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    private function sendRequest(string $method, string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], null|StreamInterface|string $requestBody = null): string
     {
         $finalUrl = $requestUrl;
         if (!empty($requestQueryStrings)) {
@@ -233,5 +313,18 @@ final class ApiRequestSender implements ApiRequestSenderInterface
         $contents = $requestBody->getContents();
 
         return $contents;
+    }
+
+    /**
+     * Drops any `Content-Type` the caller passed, whatever its case, so it cannot end up alongside the
+     * one this library has to set.
+     *
+     * @param array<string, string> $requestHeaders
+     *
+     * @return array<string, string>
+     */
+    private static function withoutContentType(array $requestHeaders): array
+    {
+        return array_filter($requestHeaders, static fn (int|string $name): bool => 0 !== strcasecmp((string) $name, self::HEADER_CONTENT_TYPE), ARRAY_FILTER_USE_KEY);
     }
 }

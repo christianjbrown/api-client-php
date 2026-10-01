@@ -8,11 +8,13 @@ use ChristianBrown\ApiClient\Exception\Request\ConnectExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Request\TransferExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\BadResponseExceptionInterface;
 use ChristianBrown\ApiClient\Exception\Response\TooManyRedirectsExceptionInterface;
+use ChristianBrown\ApiClient\Multipart\MultipartPartInterface;
 
 interface ApiRequestSenderInterface
 {
     public const string CONTENT_TYPE_FORM_URLENCODED = 'application/x-www-form-urlencoded';
     public const string CONTENT_TYPE_JSON = 'application/json';
+    public const string CONTENT_TYPE_MULTIPART_SPRINTF = 'multipart/form-data; boundary=%s';
     public const string HEADER_AUTHORIZATION = 'Authorization';
     public const string HEADER_CONTENT_TYPE = 'Content-Type';
     public const string HEADER_PROXY_AUTHORIZATION = 'Proxy-Authorization';
@@ -73,6 +75,19 @@ interface ApiRequestSenderInterface
     public function patchForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string;
 
     /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     *
+     * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function patchMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): string;
+
+    /**
      * @param string                $requestUrl          The request URL
      * @param array<string, string> $requestQueryStrings
      * @param array<string, string> $requestHeaders
@@ -99,6 +114,19 @@ interface ApiRequestSenderInterface
     public function postForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string;
 
     /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     *
+     * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function postMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): string;
+
+    /**
      * @param string                $requestUrl          The request URL
      * @param array<string, string> $requestQueryStrings
      * @param array<string, string> $requestHeaders
@@ -123,4 +151,17 @@ interface ApiRequestSenderInterface
      * @throws TooManyRedirectsExceptionInterface
      */
     public function putForm(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyFormData = []): string;
+
+    /**
+     * @param string                             $requestUrl          The request URL
+     * @param array<string, string>              $requestQueryStrings
+     * @param array<string, string>              $requestHeaders
+     * @param array<int, MultipartPartInterface> $requestBodyParts
+     *
+     * @throws ConnectExceptionInterface
+     * @throws TransferExceptionInterface
+     * @throws BadResponseExceptionInterface
+     * @throws TooManyRedirectsExceptionInterface
+     */
+    public function putMultipart(string $requestUrl, array $requestQueryStrings = [], array $requestHeaders = [], array $requestBodyParts = []): string;
 }
