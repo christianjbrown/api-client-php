@@ -11,6 +11,7 @@ use JsonException;
 
 use function is_array;
 use function json_decode;
+use function mb_trim;
 use function sprintf;
 
 use const JSON_THROW_ON_ERROR;
@@ -24,6 +25,12 @@ final class JsonToArrayTransformer implements JsonToArrayTransformerInterface
      */
     public function transform(string $data, RequestContextInterface $context): array
     {
+        // An empty body (a 204, or a DELETE that returns nothing) is a successful response with no
+        // data, not malformed JSON.
+        if ('' === mb_trim($data)) {
+            return [];
+        }
+
         try {
             $array = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {

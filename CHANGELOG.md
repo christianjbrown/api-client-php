@@ -29,6 +29,13 @@ All notable changes to this package are recorded here. The format follows
 - `ApiClientContainerFactory` takes a `ClientOptionsInterface` as a constructor argument. `new ApiClient()`
   passes the defaults for you.
 
+### Fixed
+
+- Query parameters passed to a URL that already has a query string are appended with `&`. They used to
+  be added after a second `?`, which folded them into the last existing value.
+- The JSON sender returns an empty array for an empty response body, such as a `204` or a `DELETE`
+  that returns nothing, instead of throwing `ParseJsonException`.
+
 ## [1.0.0] - 2026-09-28
 
 First stable release.

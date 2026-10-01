@@ -12,6 +12,7 @@ use ChristianBrown\ApiClient\RequestContext;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformer;
 use ChristianBrown\ApiClient\Transformer\JsonToArrayTransformerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(AbstractException::class)]
@@ -26,6 +27,15 @@ final class JsonToArrayTransformerTest extends TestCase
         $transformer = new JsonToArrayTransformer();
         $actual = $transformer->transform('{"test-key-1": "test-value-1"}', new RequestContext('test-method', 'test-url', ['test-key-1' => 'test-value-1']));
         self::assertSame(['test-key-1' => 'test-value-1'], $actual);
+    }
+
+    #[TestWith([''])]
+    #[TestWith([" \n"])]
+    public function testEmptyBody(string $data): void
+    {
+        $transformer = new JsonToArrayTransformer();
+        $actual = $transformer->transform($data, new RequestContext('test-method', 'test-url', ['test-key-1' => 'test-value-1']));
+        self::assertSame([], $actual);
     }
 
     public function testException(): void
