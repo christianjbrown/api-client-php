@@ -23,6 +23,7 @@ use GuzzleHttp\Psr7\Request;
 use function array_merge;
 use function http_build_query;
 use function sprintf;
+use function str_contains;
 
 final class ApiRequestSender implements ApiRequestSenderInterface
 {
@@ -201,7 +202,10 @@ final class ApiRequestSender implements ApiRequestSenderInterface
         $finalUrl = $requestUrl;
         if (!empty($requestQueryStrings)) {
             $requestQueryStringsFlat = http_build_query($requestQueryStrings, '', '&');
-            $finalUrl = sprintf('%s?%s', $requestUrl, $requestQueryStringsFlat);
+            // A URL that already carries a query string gets the new parameters appended to it,
+            // rather than a second `?` that would fold them into the last existing value.
+            $separator = str_contains($requestUrl, '?') ? '&' : '?';
+            $finalUrl = sprintf('%s%s%s', $requestUrl, $separator, $requestQueryStringsFlat);
         }
         $request = new Request($method, $finalUrl, $requestHeaders, $requestBody);
 
