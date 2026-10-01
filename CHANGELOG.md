@@ -6,6 +6,8 @@ All notable changes to this package are recorded here. The format follows
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-10-01
+
 ### Added
 
 - `ApiClientFactory` and `ApiClientFactoryInterface`, the composition root that builds an `ApiClient`
@@ -90,6 +92,7 @@ First stable release.
 - `RequestContext`, a value object carrying the method, URL and query string, exposed on parse
   exceptions so a failure reports where it happened.
 
-[Unreleased]: https://github.com/christianjbrown/api-client-php/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/christianjbrown/api-client-php/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/christianjbrown/api-client-php/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/christianjbrown/api-client-php/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/christianjbrown/api-client-php/releases/tag/v1.0.0
